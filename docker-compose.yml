@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # 1. База данных
+  db:
+    image: postgres:15-alpine
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  # 2. Redis (кэш и бэкенд Celery)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: always
+
+  # 3. RabbitMQ (брокер сообщений Celery)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: always
+
+  # 4. Веб-сервер FastAPI
+  web:
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+
+  # 5. Celery воркер (парсеры)
+  worker:
+    build: .
+    command: celery -A worker worker --concurrency=3 --loglevel=info
+    env_file: .env
+    depends_on:
+      - rabbitmq
+      - redis
+      - db
+    volumes:
+      - .:/app
+
+  # 6. Celery Beat (планировщик: ночное обновление Steam, проверка цен каждые 12 ч)
+  beat:
+    build: .
+    command: celery -A worker beat --loglevel=INFO
+    env_file: .env
+    depends_on:
+      - rabbitmq
+      - redis
+      - db
+
+  # 7. Flower (мониторинг Celery)
+  flower:
+    build: .
+    command: celery -A worker flower --port=5555
+    env_file: .env
+    ports:
+      - "5555:5555"
+    depends_on:
+      - rabbitmq
+      - redis
+      - worker
+
+volumes:
+  postgres_data:

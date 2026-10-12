@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameDeals - Агрегатор цен</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+        /* Активная кнопка фильтра */
+        .filter-active { background-color: #10b981; color: white; border-color: #10b981; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
+
+    <nav class="bg-gray-800 border-b border-gray-700 p-4 sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <a href="/" class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 hover:opacity-80 transition">
+                <i class="fa-solid fa-gamepad mr-2"></i>GameDeals
+            </a>
+            <div class="flex-1 max-w-2xl mx-8 relative">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Введите название игры (например: Marathon)..."
+                           class="w-full bg-gray-700 text-white border border-gray-600 rounded-lg py-2 pl-10 pr-4 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition placeholder-gray-400">
+                    <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+            </div>
+            <div>
+                <button onclick="searchGame()" class="bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-6 rounded-lg transition shadow-lg shadow-green-600/30">
+                    Найти цены
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 mt-6">
+
+        <div id="welcomeState" class="text-center py-10 w-full">
+            <i class="fa-solid fa-crosshairs text-6xl text-gray-600 mb-6"></i>
+            <h1 class="text-3xl font-bold text-gray-200">Найдите лучшую цену</h1>
+            <p class="text-gray-400 mt-4">ИИ-парсер отберет только безопасные ключи и отсеет мусор.</p>
+
+            <div id="topGamesSection" class="mt-16 text-left max-w-6xl mx-auto hidden">
+                <h2 class="text-xl font-bold text-gray-200 mb-6 border-b border-gray-700 pb-2">
+                    <i class="fa-brands fa-hotjar text-red-500 mr-2"></i>Популярные игры
+                </h2>
+                <div id="topGamesGrid" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    </div>
+            </div>
+        </div>
+
+        <div id="loader" class="hidden text-center py-20">
+            <i class="fa-solid fa-circle-notch fa-spin text-5xl text-green-500"></i>
+            <p class="text-gray-400 mt-4 text-lg" id="loaderText">Ищем игру в базе...</p>
+        </div>
+
+        <div id="resultsState" class="hidden flex flex-col lg:flex-row gap-8">
+
+            <div class="w-full lg:w-1/4">
+                <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 sticky top-24 shadow-lg">
+                    <h2 id="gameTitle" class="text-2xl font-bold mb-4 text-white">Название игры</h2>
+
+                    <div class="mb-6">
+                        <h3 class="text-xs uppercase tracking-wider text-gray-500 mb-3 font-semibold">Цены в Steam</h3>
+                        <div id="steamPrices" class="space-y-2"></div>
+                    </div>
+
+                    <div class="border-t border-gray-700 pt-4 mt-4">
+                        <p class="text-xs text-gray-500 mb-1">Обновлено:</p>
+                        <p id="lastUpdate" class="text-gray-300 font-mono text-sm">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-3/4">
+
+                <div class="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-6 shadow-md">
+                    <div class="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-sm text-gray-400 mr-2"><i class="fa-solid fa-globe mr-1"></i>Регион:</span>
+                            <button onclick="setFilter('region', 'All')" class="filter-btn region-btn filter-active px-3 py-1 rounded-full border border-gray-600 text-sm transition">Все</button>
+                            <button onclick="setFilter('region', 'Global')" class="filter-btn region-btn px-3 py-1 rounded-full border border-gray-600 text-sm transition hover:border-gray-400">Global</button>
+                            <button onclick="setFilter('region', 'RU')" class="filter-btn region-btn px-3 py-1 rounded-full border border-gray-600 text-sm transition hover:border-gray-400">RU</button>
+                            <button onclick="setFilter('region', 'CIS')" class="filter-btn region-btn px-3 py-1 rounded-full border border-gray-600 text-sm transition hover:border-gray-400">CIS</button>
+                            <button onclick="setFilter('region', 'TR')" class="filter-btn region-btn px-3 py-1 rounded-full border border-gray-600 text-sm transition hover:border-gray-400">TR</button>
+                        </div>
+
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-sm text-gray-400 mr-2"><i class="fa-solid fa-desktop mr-1"></i>Платформа:</span>
+                            <button onclick="setFilter('platform', 'All')" class="filter-btn platform-btn filter-active px-3 py-1 rounded-full border border-gray-600 text-sm transition">Все</button>
+                            <button onclick="setFilter('platform', 'Steam')" class="filter-btn platform-btn px-3 py-1 rounded-full border border-gray-600 text-sm transition hover:border-gray-400"><i class="fa-brands fa-steam text-xs mr-1"></i>Steam</button>
+                            <button onclick="setFilter('platform', 'Xbox')" class="filter-btn platform-btn px-3 py-1 rounded-full border border-gray-600 text-sm transition hover:border-gray-400"><i class="fa-brands fa-xbox text-xs mr-1 text-green-500"></i>Xbox</button>
+                            <button onclick="setFilter('platform', 'PSN')" class="filter-btn platform-btn px-3 py-1 rounded-full border border-gray-600 text-sm transition hover:border-gray-400"><i class="fa-brands fa-playstation text-xs mr-1 text-blue-500"></i>PSN</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-200">Предложения <span id="offersCount" class="text-green-400 ml-1"></span></h3>
+                </div>
+
+                <div id="offersList" class="flex flex-col gap-3"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let allOffers = [];
+        let currentRegionFilter = 'All';
+        let currentPlatformFilter = 'All';
+
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') searchGame(); });
+
+        // Загружаем популярные игры при старте страницы
+        document.addEventListener('DOMContentLoaded', loadTopGames);
+
+        async function loadTopGames() {
+            try {
+                // Обращаемся к твоему готовому эндпоинту с картинками из Steam!
+                const res = await fetch('/api/featured');
+                if (!res.ok) return;
+
+                const data = await res.json();
+                const gamesList = data.games || [];
+
+                if (gamesList.length > 0) {
+                    document.getElementById('topGamesSection').classList.remove('hidden');
+                    const grid = document.getElementById('topGamesGrid');
+                    grid.innerHTML = '';
+
+                    // Выводим игры (твой эндпоинт отдает 8 штук)
+                    gamesList.forEach(game => {
+                        // Если есть картинка, показываем её, если нет - ставим красивый геймпад-заглушку
+                        const imageHtml = game.image
+                            ? `<img src="${game.image}" alt="${game.name}" class="w-full h-full object-cover rounded opacity-80 group-hover:opacity-100 transition">`
+                            : `<i class="fa-solid fa-gamepad text-3xl text-gray-500 group-hover:text-green-400 transition"></i>`;
+
+                        const card = `
+                            <div onclick="selectTopGame('${game.name}')" class="cursor-pointer bg-gray-800 border border-gray-700 rounded-lg p-3 hover:border-green-500 hover:bg-gray-750 transition group shadow-sm flex flex-col items-center text-center">
+                                <div class="w-full h-24 bg-gray-700 rounded mb-3 flex items-center justify-center transition overflow-hidden">
+                                    ${imageHtml}
+                                </div>
+                                <h3 class="text-sm font-bold text-gray-300 truncate w-full" title="${game.name}">${game.name}</h3>
+                            </div>
+                        `;
+                        grid.innerHTML += card;
+                    });
+                }
+            } catch (error) {
+                console.error("Ошибка загрузки популярных игр:", error);
+            }
+        }
+
+        function selectTopGame(gameName) {
+            searchInput.value = gameName;
+            searchGame();
+        }
+
+        async function searchGame() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            document.getElementById('welcomeState').classList.add('hidden');
+            document.getElementById('resultsState').classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('loaderText').innerText = `Ищем игру "${query}"...`;
+
+            try {
+                const searchRes = await fetch(`/api/catalog/search?query=${encodeURIComponent(query)}`);
+                const searchData = await searchRes.json();
+
+                if (searchData.status === 'success' && searchData.games.length > 0) {
+                    const gameId = searchData.games[0].id;
+                    document.getElementById('loaderText').innerText = `Загружаем свежие цены...`;
+                    await fetchAndRenderPrices(gameId);
+                } else {
+                    alert('Игра не найдена в базе!');
+                    resetUI();
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Ошибка при поиске.');
+                resetUI();
+            }
+        }
+
+        async function fetchAndRenderPrices(gameId) {
+            try {
+                const res = await fetch(`/api/prices/${gameId}`);
+                const data = await res.json();
+
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('resultsState').classList.remove('hidden');
+
+                document.getElementById('gameTitle').innerText = data.game_name;
+                document.getElementById('lastUpdate').innerText = data.last_update
+                    ? new Date(data.last_update).toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'})
+                    : "Только что";
+
+                // Рендер Steam цен
+                const steamContainer = document.getElementById('steamPrices');
+                steamContainer.innerHTML = '';
+                if (data.steam_official) {
+                    const flags = { 'Россия': '🇷🇺', 'Казахстан': '🇰🇿', 'Турция': '🇹🇷' };
+                    for (const [region, price] of Object.entries(data.steam_official)) {
+                        if (region === 'raw_rub') continue;
+                        const icon = flags[region] || '🌍';
+                        steamContainer.innerHTML += `
+                            <div class="flex justify-between items-center bg-gray-750 p-2 rounded text-sm">
+                                <span class="text-gray-400">${icon} ${region}</span>
+                                <span class="font-bold ${price === 'Недоступно' ? 'text-red-400/80' : 'text-gray-200'}">${price}</span>
+                            </div>
+                        `;
+                    }
+                }
+
+                // Сохраняем все предложения глобально и запускаем рендер
+                allOffers = data.current_offers || [];
+                applyFiltersAndRender();
+
+            } catch (error) {
+                console.error(error);
+                resetUI();
+            }
+        }
+
+        // Логика фильтров
+        function setFilter(type, value) {
+            if (type === 'region') currentRegionFilter = value;
+            if (type === 'platform') currentPlatformFilter = value;
+
+            // Обновляем визуальное состояние кнопок
+            document.querySelectorAll(`.${type}-btn`).forEach(btn => {
+                if(btn.innerText.trim() === value || (value === 'All' && btn.innerText.trim() === 'Все')) {
+                    btn.classList.add('filter-active');
+                    btn.classList.remove('border-gray-600', 'text-gray-300');
+                } else {
+                    btn.classList.remove('filter-active');
+                    btn.classList.add('border-gray-600', 'text-gray-300');
+                }
+            });
+
+            applyFiltersAndRender();
+        }
+
+        function applyFiltersAndRender() {
+            let filtered = allOffers.sort((a, b) => a.price - b.price);
+
+            // Фильтр по региону
+            if (currentRegionFilter !== 'All') {
+                filtered = filtered.filter(o => o.region === currentRegionFilter);
+            }
+
+            // Фильтр по платформе (ищем ключевые слова в названии магазина и лота)
+            if (currentPlatformFilter !== 'All') {
+                filtered = filtered.filter(o => {
+                    const text = (o.shop + " " + o.lot_name).toLowerCase();
+                    if (currentPlatformFilter === 'Steam') return text.includes('steam') || text.includes('steambuy') || text.includes('zaka');
+                    if (currentPlatformFilter === 'Xbox') return text.includes('xbox');
+                    if (currentPlatformFilter === 'PSN') return text.includes('psn') || text.includes('playstation') || text.includes('ps4') || text.includes('ps5');
+                    return true;
+                });
+            }
+
+            renderCards(filtered);
+        }
+
+        function renderCards(offers) {
+            const container = document.getElementById('offersList');
+            container.innerHTML = '';
+            document.getElementById('offersCount').innerText = offers.length > 0 ? `(${offers.length})` : '';
+
+            if (offers.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-gray-800 border border-gray-700 rounded-xl p-10 text-center">
+                        <i class="fa-solid fa-ghost text-5xl text-gray-600 mb-4"></i>
+                        <h4 class="text-xl text-gray-300 font-semibold">Ничего не найдено</h4>
+                        <p class="text-gray-500 mt-2">Попробуйте изменить фильтры платформы или региона.</p>
+                    </div>`;
+                return;
+            }
+
+            offers.forEach(offer => {
+                let shopColor = "text-gray-400";
+                if (offer.shop.includes('FunPay')) shopColor = "text-blue-400";
+                if (offer.shop.includes('Plati')) shopColor = "text-orange-400";
+                if (offer.shop.includes('Steambuy')) shopColor = "text-green-400";
+
+                const card = `
+                    <a href="${offer.url}" target="_blank" class="block bg-gray-800 border border-gray-700 rounded-lg p-4 hover:border-green-500 hover:bg-gray-750 transition group shadow-sm hover:shadow-green-900/20">
+                        <div class="flex justify-between items-center">
+                            <div class="flex flex-col w-3/4">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <i class="fa-solid fa-store ${shopColor}"></i>
+                                    <span class="font-bold text-gray-200 text-sm md:text-base">${offer.shop}</span>
+                                </div>
+                                <span class="text-sm text-gray-400 truncate w-full" title="${offer.lot_name}">${offer.lot_name}</span>
+                                <div class="flex gap-2 mt-2">
+                                    <span class="text-xs bg-gray-700 px-2 py-1 rounded-md text-gray-300 font-medium border border-gray-600">
+                                        <i class="fa-solid fa-globe mr-1 text-gray-400"></i>${offer.region}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="text-right flex flex-col items-end justify-center">
+                                <span class="text-xl md:text-2xl font-bold text-green-400">${offer.price.toLocaleString('ru-RU')} ₽</span>
+                                <span class="text-xs text-gray-500 mt-1 opacity-0 group-hover:opacity-100 transition translate-x-2 group-hover:translate-x-0">Купить <i class="fa-solid fa-arrow-right ml-1"></i></span>
+                            </div>
+                        </div>
+                    </a>`;
+                container.innerHTML += card;
+            });
+        }
+
+        function resetUI() {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('welcomeState').classList.remove('hidden');
+            // При сбросе показываем блок с топом игр снова
+            document.getElementById('topGamesSection').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
