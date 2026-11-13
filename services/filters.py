@@ -503,7 +503,7 @@ def is_reliable_seller_ggsel(
             try:
                 date_str = str(registered)[:10]
                 reg_dt = datetime.strptime(date_str, "%Y-%m-%d")
-                age_days = (datetime.utcnow() - reg_dt).days
+                age_days = (datetime.now() - reg_dt).days
                 if age_days < min_reg_days:
                     return False
             except Exception:
@@ -538,7 +538,7 @@ def is_reliable_seller_plati(
     """
     numsold = item.get("numsold")
     if numsold is None:
-        return False
+        return True
 
     sales = int(numsold or 0)
     if sales < min_sales:
