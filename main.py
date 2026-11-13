@@ -42,15 +42,45 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="LootoZavr API", lifespan=lifespan)
+ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "lootozavr_admin_secret_2026")
+
+
+async def verify_admin_key(request: Request):
+    key = request.headers.get("X-Admin-Key") or request.query_params.get("admin_key")
+    if not key or key != ADMIN_SECRET_KEY:
+        raise HTTPException(
+            status_code=403,
+            detail="Доступ запрещён: требуется ключ администратора (заголовок X-Admin-Key)"
+        )
+    return True
+
+
+# Swagger UI / OpenAPI отключены в целях безопасности для продакшена
+app = FastAPI(
+    title="LootoZavr API",
+    lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response: Response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 if os.path.exists("static"):
     app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -445,7 +475,7 @@ async def search_games(query: str, db: AsyncSession = Depends(get_db)):
     }
 
 
-@app.post("/api/catalog")
+@app.post("/api/catalog", dependencies=[Depends(verify_admin_key)])
 async def add_game_to_catalog(game: GameCreateRequest, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(GameCatalog).where(GameCatalog.name == game.name))
     if result.scalars().first():
@@ -458,13 +488,13 @@ async def add_game_to_catalog(game: GameCreateRequest, db: AsyncSession = Depend
     return {"status": "success", "game_id": new_game.id}
 
 
-@app.post("/api/catalog/sync")
+@app.post("/api/catalog/sync", dependencies=[Depends(verify_admin_key)])
 async def trigger_catalog_sync():
     sync_top_steam_games.delay()
     return {"status": "success", "message": "Паук Steam запущен."}
 
 
-@app.post("/api/catalog/sync_funpay")
+@app.post("/api/catalog/sync_funpay", dependencies=[Depends(verify_admin_key)])
 async def trigger_funpay_sync():
     sync_funpay_catalog.delay()
     return {"status": "success", "message": "Паук FunPay запущен! Он ищет ссылки для всех игр в базе."}
@@ -472,6 +502,11 @@ async def trigger_funpay_sync():
 
 @app.post("/api/track")
 async def add_tracking_task(task: TaskCreateRequest, db: AsyncSession = Depends(get_db)):
+    if task.target_price <= 0 or task.target_price > 1000000:
+        raise HTTPException(status_code=400, detail="Некорректная целевая цена")
+    if task.chat_id <= 0:
+        raise HTTPException(status_code=400, detail="Некорректный Telegram Chat ID")
+
     result = await db.execute(select(GameCatalog).where(GameCatalog.name.ilike(f"%{task.game_name}%")))
     game = result.scalars().first()
 
@@ -702,31 +737,31 @@ async def get_price_history(game_id: int, db: AsyncSession = Depends(get_db)):
     }
 
 
-@app.post("/api/tasks/force_check")
+@app.post("/api/tasks/force_check", dependencies=[Depends(verify_admin_key)])
 async def force_check_all_prices():
     trigger_all_price_checks.delay()
     return {"status": "success", "message": "Все воркеры запущены принудительно!"}
 
 
-@app.post("/api/tasks/fill_missing")
+@app.post("/api/tasks/fill_missing", dependencies=[Depends(verify_admin_key)])
 async def trigger_smart_fill():
     fill_missing_prices.delay()
     return {"status": "success", "message": "Запущен сбор цен для игр без данных."}
 
 
-@app.post("/api/catalog/backfill_appids")
+@app.post("/api/catalog/backfill_appids", dependencies=[Depends(verify_admin_key)])
 async def trigger_backfill_appids():
     backfill_steam_appids.delay()
     return {"status": "success", "message": "Запущен сбор Steam AppID для игр в каталоге."}
 
 
-@app.post("/api/catalog/backfill_stats")
+@app.post("/api/catalog/backfill_stats", dependencies=[Depends(verify_admin_key)])
 async def trigger_backfill_stats():
     backfill_steamspy_stats.delay()
     return {"status": "success", "message": "Запущен сбор статистики SteamSpy."}
 
 
-@app.post("/api/tasks/reparse_all")
+@app.post("/api/tasks/reparse_all", dependencies=[Depends(verify_admin_key)])
 async def trigger_reparse_all():
     reparse_all_games.delay(batch=0, batch_size=100)
     return {"status": "success", "message": "Запущен полный перепарсинг всех игр батчами по 100."}

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. База данных (доступна только внутри Docker-сети)
   db:
@@ -18,11 +16,11 @@ services:
     image: redis:7-alpine
     restart: always
 
-  # 3. RabbitMQ — управление доступно снаружи, брокер только внутри
+  # 3. RabbitMQ — управление доступно только локально, брокер внутри
   rabbitmq:
     image: rabbitmq:3-management-alpine
     ports:
-      - "15672:15672"
+      - "127.0.0.1:15672:15672"
     restart: always
 
   # 4. Веб-сервер FastAPI
@@ -65,13 +63,13 @@ services:
     volumes:
       - .:/app
 
-  # 7. Flower (мониторинг Celery)
+  # 7. Flower (мониторинг Celery, доступен только локально)
   flower:
     build: .
     command: celery -A worker flower --port=5555
     env_file: .env
     ports:
-      - "5555:5555"
+      - "127.0.0.1:5555:5555"
     depends_on:
       - rabbitmq
       - redis

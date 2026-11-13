@@ -25,8 +25,8 @@ def test_footer_modals_and_links():
         print("PASS: GitHub link verified.")
         
         api_link = page.locator("a[href='/docs']")
-        assert api_link.count() >= 1, "Expected /docs link in footer"
-        print("PASS: API /docs link verified.")
+        assert api_link.count() == 0, "Expected /docs link to be removed from footer for production security"
+        print("PASS: /docs link successfully removed from footer.")
         
         # Test 2: Click 'Политика конфиденциальности' and check modal
         print("Testing Privacy Policy modal...")
