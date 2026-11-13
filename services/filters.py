@@ -225,19 +225,43 @@ def matches_game_name(lot_name: str, db_game_name: str, strict: bool = True) -> 
 
 def detect_region(text: str) -> str:
     t = text.lower()
-    if re.search(r"\b(global|region free|весь мир|глобал|row|any country|all regions?|все регионы|все страны|выбор региона|worldwide)\b|\bмир\b", t):
+
+    # Проверяем явное отрицание / исключение РФ или России
+    # Примеры: "кроме РФ", "без РФ", "не РФ", "кроме России", "не для РФ", "не для России", "нельзя активировать в РФ", "not for ru", "no ru"
+    is_ru_excluded = bool(re.search(
+        r"(?:кроме|без|не\s+(?:для|в|работает\s+в|активируется\s+в)?|not\s+(?:for|in)?|no|excl(?:ude[ds]?|\.)?|запрещ\w*\s+в)\s*"
+        r"(?:активировать\s+)?(?:в\s+|для\s+)?"
+        r"(?:рф|ru|росси\w*|rf)\b",
+        t
+    ))
+
+    # Очищаем отрицательные упоминания, чтобы они не триггерили поиск региона
+    t_clean = re.sub(
+        r"(?:нельзя|запрещ\w*|кроме|не\s+(?:для|в)?|без|not\s+(?:for|in)?|no|excl\w*)\s+(?:активировать\s+)?(?:в\s+|для\s+)?(?:ru|рф|росси\w*|cis|снг|rf|рб|by|беларус\w*)\b",
+        "",
+        t
+    )
+
+    # Если исключена РФ, но указан СНГ / CIS / страны СНГ -> это CIS
+    if is_ru_excluded and re.search(r"\b(cis|снг)\b", t):
+        return "CIS"
+
+    if re.search(r"(снг\s*без|cis\s*excl|без\s*рф|кроме\s*рф|кроме\s*росси|без\s*росси|не\s*рф)", t):
+        return "CIS"
+
+    # Global / Весь мир
+    if re.search(r"\b(global|region free|весь мир|глобал|row|any country|all regions?|все регионы|все страны|выбор региона|worldwide)\b|\bмир\b", t_clean):
+        if is_ru_excluded:
+            return "CIS" if re.search(r"\b(cis|снг)\b", t) else "Global"
         return "Global"
 
-    # Очищаем отрицательные упоминания (например: "нельзя активировать в RU и СНГ", "без РФ", "кроме России")
-    # чтобы они ошибочно не принимались за регион самого ключа!
-    t_clean = re.sub(r"(?:нельзя|запрещ\w*|кроме|не для|без|not for|exclude)\s+(?:активировать\s+)?(?:в\s+|для\s+)?(?:ru|рф|росси\w*|cis|снг|rf)", "", t)
-
-    if re.search(r"(снг\s*без|cis\s*excl|без\s*рф|кроме\s*рф)", t):
-        return "CIS"
     if re.search(r"\beu\b|europe|\bевроп", t_clean) and not re.search(r"\b(ru|рф)\b|росси[яюи]?|russia", t_clean):
         return "EU"
-    if re.search(r"\b(ru|рф)\b|росси[яюи]?|russia", t_clean):
+
+    # RU — ТОЛЬКО если РФ НЕ исключена!
+    if not is_ru_excluded and re.search(r"\b(ru|рф)\b|росси[яюи]?|russia", t_clean):
         return "RU"
+
     if re.search(r"\bua\b|украин|ukraine", t_clean):
         return "UA"
     if re.search(r"\b(cis|снг)\b", t_clean):

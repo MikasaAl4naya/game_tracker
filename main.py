@@ -1,6 +1,6 @@
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import httpx
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Response
@@ -194,6 +194,10 @@ async def serve_game_page(game_id: int, request: Request, db: AsyncSession = Dep
         .order_by(PriceResult.timestamp.desc())
     )
     prices = res.scalars().all()
+    if prices:
+        cutoff = prices[0].timestamp - timedelta(hours=48)
+        prices = [p for p in prices if p.timestamp >= cutoff]
+
     legacy_shops = {"GGSEL", "WMCentre", "Plati"}
     current_prices = []
     seen = set()
@@ -487,6 +491,11 @@ async def get_game_prices(
 
     if needs_update:
         background_tasks.add_task(run_price_update, game_id, game.name, game.url_funpay)
+
+    # Исключаем устаревшие предложения, исчезнувшие из магазинов (> 48 часов от последнего обновления игры)
+    if last_update:
+        fresh_cutoff = last_update - timedelta(hours=48)
+        prices = [p for p in prices if p.timestamp >= fresh_cutoff]
 
     legacy_shops = {"GGSEL", "WMCentre", "Plati"}
     current_offers = []
