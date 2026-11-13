@@ -633,9 +633,9 @@
         <div id="discoverySection" class="mt-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#1C2538]">
                 <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0" id="discoveryTabs">
-                    <button class="discovery-tab active" data-tab="popular" onclick="switchDiscoveryTab('popular')">
-                        <i class="fa-solid fa-fire text-orange-400"></i>
-                        <span>Хиты продаж</span>
+                    <button class="discovery-tab active" data-tab="new" onclick="switchDiscoveryTab('new')">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+                        <span>Новинки</span>
                     </button>
                     <button class="discovery-tab" data-tab="deals" onclick="switchDiscoveryTab('deals')">
                         <i class="fa-solid fa-percent text-deal"></i>
@@ -1982,13 +1982,13 @@ let editionFilter       = 'All';
 let formatFilter        = 'All';
 let currentSort         = 'price_asc';
 let pollingTimer        = null;
-let currentDiscoveryTab = 'popular';
+let currentDiscoveryTab = 'new';
 let discoveryCache      = {};
 
 // ─── Init ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     initAppConfig();
-    loadDiscoveryGames('popular');
+    loadDiscoveryGames('new');
 
     const searchInput = document.getElementById('searchInput');
     const suggestionsBox = document.getElementById('searchSuggestions');
@@ -2123,7 +2123,7 @@ async function switchDiscoveryTab(tab) {
     await loadDiscoveryGames(tab);
 }
 
-async function loadDiscoveryGames(mode = 'popular') {
+async function loadDiscoveryGames(mode = 'new') {
     const grid = document.getElementById('discoveryGrid');
     const loading = document.getElementById('discoveryLoading');
     if (!grid) return;
@@ -2193,8 +2193,8 @@ function renderDiscoveryGrid(items, mode) {
         if (mode === 'deals') {
             const pct = game.discount_percent || 45;
             badgeTag = `<span class="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-500/25 text-rose-400 border border-rose-500/40 backdrop-blur-md flex items-center gap-1 shadow-lg">🔥 -${pct}%</span>`;
-        } else if (mode === 'popular') {
-            badgeTag = `<span class="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#00D4FF]/20 text-[#00D4FF] border border-[#00D4FF]/30 backdrop-blur-md">🏆 Хит</span>`;
+        } else if (mode === 'new' || mode === 'popular') {
+            badgeTag = `<span class="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 backdrop-blur-md flex items-center gap-1">✨ Новинка</span>`;
         } else if (mode === 'steam') {
             badgeTag = `<span class="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 backdrop-blur-md">⭐ Steam</span>`;
         }

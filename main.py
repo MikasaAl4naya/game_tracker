@@ -669,8 +669,8 @@ async def trigger_reparse_all():
 
 
 @app.get("/api/catalog/popular")
-async def get_popular_games(mode: str = "popular", db: AsyncSession = Depends(get_db)):
-    """Игры с ценами: популярные, новинки или с лучшими ценами."""
+async def get_popular_games(mode: str = "new", db: AsyncSession = Depends(get_db)):
+    """Игры с ценами: новинки (new), скидки (deals) или бестселлеры Steam (steam)."""
     import json
     from services.config import redis_client
 
@@ -725,8 +725,14 @@ async def get_popular_games(mode: str = "popular", db: AsyncSession = Depends(ge
     if mode == "deals":
         stmt = stmt.having(func.count(latest_prices_stmt.c.price) >= 3)
         stmt = stmt.order_by(func.min(latest_prices_stmt.c.price).asc(), func.count(latest_prices_stmt.c.price).desc())
-    elif mode == "popular":
-        stmt = stmt.order_by(func.count(latest_prices_stmt.c.price).desc(), func.min(latest_prices_stmt.c.price).asc())
+    elif mode in ("new", "popular"):
+        # Новинки: современные релизы (steam_appid >= 1500000) с наибольшим спросом и активными предложениями
+        stmt = stmt.where(GameCatalog.steam_appid >= 1500000)
+        stmt = stmt.order_by(
+            func.count(latest_prices_stmt.c.price).desc(),
+            GameCatalog.steam_appid.desc(),
+            func.min(latest_prices_stmt.c.price).asc(),
+        )
     else:  # "steam"
         stmt = stmt.order_by(
             func.coalesce(GameCatalog.steamspy_owners, 0).desc(),

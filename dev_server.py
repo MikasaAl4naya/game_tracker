@@ -287,11 +287,13 @@ class DevServerHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         if path == "/api/catalog/popular":
-            mode = query.get("mode", ["popular"])[0]
+            mode = query.get("mode", ["new"])[0]
             games = list(MOCK_GAMES)
-            if mode == "discount":
+            if mode in ("discount", "deals"):
                 games.sort(key=lambda x: x["discount_percent"], reverse=True)
             elif mode == "steam":
+                games.sort(key=lambda x: int(x.get("steamspy_owners", 0)), reverse=True)
+            elif mode in ("new", "popular"):
                 games.sort(key=lambda x: int(x["steam_appid"]), reverse=True)
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")

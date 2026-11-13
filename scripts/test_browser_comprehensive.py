@@ -19,26 +19,37 @@ async def run_tests():
         page = await context.new_page()
 
         # -------------------------------------------------------------
-        # TEST 1: HOMEPAGE DISCOVERY CARDS & PRICES
+        # TEST 1: HOMEPAGE DISCOVERY CARDS & PRICES (НОВИНКИ)
         # -------------------------------------------------------------
         print("\n[TEST 1] Checking Homepage (/)...")
         await page.goto(f"{BASE_URL}/", wait_until="networkidle")
         await page.wait_for_timeout(1500)
-
-        # Take homepage screenshot
-        home_shot = os.path.join(SCREENSHOTS_DIR, "01_homepage_popular.png")
-        await page.screenshot(path=home_shot, full_page=False)
-        print(f"  📸 Saved homepage screenshot to {home_shot}")
 
         # Check title / branding
         title = await page.title()
         print(f"  Page title: {title}")
         assert "LootoZavr" in title, f"Expected LootoZavr in title, got: {title}"
 
-        # Check popular games cards
+        # Verify active tab is "Новинки"
+        active_tab = page.locator(".discovery-tab.active")
+        tab_text = await active_tab.inner_text()
+        print(f"  Active discovery tab: '{tab_text.strip()}'")
+        assert "Новинки" in tab_text, f"Expected 'Новинки' to be active tab, got: {tab_text}"
+
+        # Take homepage screenshot
+        home_shot = os.path.join(SCREENSHOTS_DIR, "01_homepage_new.png")
+        await page.screenshot(path=home_shot, full_page=False)
+        print(f"  📸 Saved homepage screenshot to {home_shot}")
+
+        # Check new games cards
         cards = await page.locator("#discoveryGrid .group").all()
-        print(f"  Found {len(cards)} discovery game cards on 'popular' tab.")
+        print(f"  Found {len(cards)} discovery game cards on 'new' (Новинки) tab.")
         assert len(cards) > 0, "No discovery cards found!"
+
+        # Verify cards have the "✨ Новинка" badge
+        badges = await page.locator("#discoveryGrid span:has-text('Новинка')").all()
+        print(f"  Found {len(badges)} '✨ Новинка' badges.")
+        assert len(badges) > 0, "Expected '✨ Новинка' badges on cards!"
 
         card_prices = {}
         for card in cards[:8]:
@@ -50,7 +61,7 @@ async def run_tests():
             card_prices[name] = p_val
             print(f"    • Card: {name} -> {p_val}")
 
-        # Assert no corrupt prices on popular cards
+        # Assert no corrupt prices on cards
         for name, p_val in card_prices.items():
             if "Elden Ring" in name or "ELDEN RING" in name:
                 assert "51" not in p_val, f"Elden Ring has corrupt price 51! Got: {p_val}"
@@ -75,6 +86,12 @@ async def run_tests():
             name = lines[1] if len(lines) > 1 else lines[0]
             price_text = [l for l in lines if "₽" in l or "от" in l]
             print(f"    • Steam Card: {name} -> {price_text[0] if price_text else 'N/A'}")
+
+        # Switch back to "Новинки" tab
+        print("\n  Switching back to 'Новинки' tab...")
+        await page.locator("button", has_text="Новинки").click()
+        await page.wait_for_timeout(500)
+        assert "Новинки" in await page.locator(".discovery-tab.active").inner_text()
 
         # -------------------------------------------------------------
         # TEST 2: HOGWARTS LEGACY (/game/25) - REGION & PLATFORM FILTERS
