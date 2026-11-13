@@ -93,7 +93,10 @@ def parse_keysforgamers(game_id: int, game_name: str, target_price: float = NO_P
 
         rel_url = item.get("url", "")
         url_lower = rel_url.lower()
-        if any(ign in url_lower for ign in ["buy-runes", "buy-currency", "buy-coins", "buy-gold", "buy-items", "buy-boost"]):
+        if any(ign in url_lower for ign in [
+            "buy-runes", "buy-currency", "buy-coins", "buy-gold", "buy-items", "buy-boost",
+            "buy-konsolnyh-akkauntov", "akkaunt", "account", "arenda"
+        ]):
             continue
 
         if not check_lot_validity(title, "", strict_key_check=False):

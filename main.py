@@ -188,11 +188,26 @@ async def serve_game_page(game_id: int, request: Request, db: AsyncSession = Dep
         html_content = render_html_with_seo(page_url=str(request.url))
         return HTMLResponse(content=html_content)
 
-    res = await db.execute(select(PriceResult).where(PriceResult.game_id == game_id))
+    res = await db.execute(
+        select(PriceResult)
+        .where(PriceResult.game_id == game_id)
+        .order_by(PriceResult.timestamp.desc())
+    )
     prices = res.scalars().all()
-    valid_prices = [p.price for p in prices if p.price >= 50 and p.shop_name not in {"GGSEL", "WMCentre", "Plati"}]
-    min_price = min(valid_prices, default=None)
-    offer_count = len(valid_prices)
+    legacy_shops = {"GGSEL", "WMCentre", "Plati"}
+    current_prices = []
+    seen = set()
+    for p in prices:
+        if p.shop_name in legacy_shops or p.price < 50.0:
+            continue
+        platform = getattr(p, "platform", None) or "Steam"
+        key = f"{p.shop_name.split(' (')[0]}_{p.region}_{platform}"
+        if key not in seen:
+            current_prices.append(p.price)
+            seen.add(key)
+
+    min_price = min(current_prices, default=None)
+    offer_count = len(current_prices)
 
     html_content = render_html_with_seo(
         game_name=game.name,
@@ -647,21 +662,48 @@ async def trigger_reparse_all():
 @app.get("/api/catalog/popular")
 async def get_popular_games(mode: str = "popular", db: AsyncSession = Depends(get_db)):
     """Игры с ценами: популярные, новинки или с лучшими ценами."""
-    from sqlalchemy import func
+    import json
+    from services.config import redis_client
+
+    cache_key = f"catalog:popular:{mode}"
+    try:
+        cached = redis_client.get(cache_key)
+        if cached:
+            return json.loads(cached)
+    except Exception:
+        pass
+
+    # Выбираем только самые актуальные предложения для каждой связки (игра, магазин, регион, платформа)
+    latest_prices_stmt = (
+        select(
+            PriceResult.game_id,
+            PriceResult.price,
+            PriceResult.timestamp,
+        )
+        .distinct(PriceResult.game_id, PriceResult.shop_name, PriceResult.region, PriceResult.platform)
+        .where(PriceResult.price >= 50.0)
+        .where(PriceResult.price <= 35000.0)
+        .order_by(
+            PriceResult.game_id,
+            PriceResult.shop_name,
+            PriceResult.region,
+            PriceResult.platform,
+            PriceResult.timestamp.desc(),
+        )
+    ).subquery("lp")
+
     stmt = (
         select(
             GameCatalog.id,
             GameCatalog.name,
             GameCatalog.steam_appid,
             GameCatalog.steamspy_owners,
-            func.count(PriceResult.id).label("offer_count"),
-            func.min(PriceResult.price).label("min_price"),
-            func.max(PriceResult.price).label("max_price"),
+            func.count(latest_prices_stmt.c.price).label("offer_count"),
+            func.min(latest_prices_stmt.c.price).label("min_price"),
+            func.max(latest_prices_stmt.c.price).label("max_price"),
         )
-        .join(PriceResult, GameCatalog.id == PriceResult.game_id)
+        .join(latest_prices_stmt, GameCatalog.id == latest_prices_stmt.c.game_id)
         .where(GameCatalog.is_free.isnot(True))
-        .where(PriceResult.price >= 50.0)
-        .where(PriceResult.price <= 35000.0)
     )
 
     # Исключаем не-игры (утилиты, обои, саундтреки, серверы)
@@ -672,15 +714,14 @@ async def get_popular_games(mode: str = "popular", db: AsyncSession = Depends(ge
     stmt = stmt.group_by(GameCatalog.id, GameCatalog.name, GameCatalog.steam_appid, GameCatalog.steamspy_owners)
 
     if mode == "deals":
-        stmt = stmt.where(PriceResult.price >= 50.0)
-        stmt = stmt.having(func.count(PriceResult.id) >= 3)
-        stmt = stmt.order_by(func.min(PriceResult.price).asc(), func.count(PriceResult.id).desc())
+        stmt = stmt.having(func.count(latest_prices_stmt.c.price) >= 3)
+        stmt = stmt.order_by(func.min(latest_prices_stmt.c.price).asc(), func.count(latest_prices_stmt.c.price).desc())
     elif mode == "popular":
-        stmt = stmt.order_by(func.count(PriceResult.id).desc(), func.min(PriceResult.price).asc())
+        stmt = stmt.order_by(func.count(latest_prices_stmt.c.price).desc(), func.min(latest_prices_stmt.c.price).asc())
     else:  # "steam"
         stmt = stmt.order_by(
             func.coalesce(GameCatalog.steamspy_owners, 0).desc(),
-            func.count(PriceResult.id).desc(),
+            func.count(latest_prices_stmt.c.price).desc(),
         )
 
     stmt = stmt.limit(15)
@@ -709,11 +750,18 @@ async def get_popular_games(mode: str = "popular", db: AsyncSession = Depends(ge
             "steam_appid": g.steam_appid,
         })
 
-    return {
+    response_data = {
         "status": "success",
         "mode": mode,
         "games": games_list,
     }
+
+    try:
+        redis_client.setex(cache_key, 180, json.dumps(response_data))
+    except Exception:
+        pass
+
+    return response_data
 
 
 @app.get("/api/featured")
