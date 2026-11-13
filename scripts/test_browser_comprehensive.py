@@ -250,6 +250,11 @@ async def run_tests():
         print(f"  Found {len(topup_logos)} service logo images on top-up cards.")
         assert len(topup_logos) > 0, "No service logos found on top-up cards!"
 
+        # Check that cards display pure service commission
+        service_fee_labels = await page.locator(".topup-service-card:has-text('Комиссия сервиса')").all()
+        print(f"  Found {len(service_fee_labels)} cards displaying 'Комиссия сервиса'.")
+        assert len(service_fee_labels) > 0, "Expected 'Комиссия сервиса' labels on topup cards!"
+
         topup_shot = os.path.join(SCREENSHOTS_DIR, "08_topup_section.png")
         await page.screenshot(path=topup_shot, full_page=False)
         print(f"  📸 Saved Top-up screenshot to {topup_shot}")

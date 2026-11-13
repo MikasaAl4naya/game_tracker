@@ -983,20 +983,20 @@
                 <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-4 text-xs font-semibold"
                      style="background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.25); color: #00E676;">
                     <i class="fa-solid fa-shield-halved text-xs"></i>
-                    <span>Актуально на 2026 год · Без передачи пароля и Steam Guard</span>
+                    <span>Актуально на 2026 год · Чистая комиссия сервисов (без скрытых сборов СБП и эквайринга)</span>
                 </div>
                 <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">
                     Где выгоднее <span style="background: linear-gradient(135deg, #00E676, #00D4FF); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">пополнить Steam</span> в России
                 </h1>
                 <p class="text-sm sm:text-base text-[#94A3B8] leading-relaxed mb-6">
-                    Честное сравнение реальных комиссий, скрытых банковских конвертаций и скорости 25 проверенных сервисов.
+                    Честное сравнение собственных комиссий платформ и скорости 25 проверенных сервисов.
                     Рассчитайте точную сумму списания и выберите способ пополнения с комиссией от 0%.
                 </p>
 
                 <!-- Fast summary badges -->
                 <div class="flex items-center gap-3 flex-wrap text-xs font-medium text-[#64748B]">
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#101520] border border-[#1C2538] text-[#E2E8F0]">
-                        <i class="fa-solid fa-shapes text-emerald-400"></i> Без переплаты: <b class="text-white">Skinamy (0%) · PlayerOK (1.5%)</b>
+                        <i class="fa-solid fa-shapes text-emerald-400"></i> Без наценки сервиса: <b class="text-white">Skinamy (0%) · PlayerOK (0%)</b>
                     </span>
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#101520] border border-[#1C2538] text-[#E2E8F0]">
                         <i class="fa-solid fa-bolt text-amber-400"></i> Самый быстрый: <b class="text-white">Steamgold / GalaxyLink (1–2 мин)</b>
@@ -1043,16 +1043,16 @@
                             <i class="fa-solid fa-crown text-[10px]"></i> Лучшая выгода прямо сейчас
                         </div>
                         <div class="flex items-baseline gap-2 mb-1">
-                            <span id="topupBestService" class="text-lg font-black text-white">FunPay</span>
-                            <span id="topupBestOverpay" class="text-xs font-bold text-[#00E676]">переплата ~35 ₽ (3.5%)</span>
+                            <span id="topupBestService" class="text-lg font-black text-white">Skinamy</span>
+                            <span id="topupBestOverpay" class="text-xs font-bold text-[#00E676]">комиссия сервиса 0%</span>
                         </div>
                         <p class="text-[11px] text-[#64748B] leading-tight mb-3">
-                            К списанию: <b id="topupBestCharge" class="text-white">1 035 ₽</b> вместо <span id="topupWorstCharge" class="line-through text-[#F87171]">1 190 ₽</span> в дорогих сервисах.
+                            К списанию: <b id="topupBestCharge" class="text-white">1 000 ₽</b> вместо <span id="topupWorstCharge" class="line-through text-[#F87171]">1 180 ₽</span> в дорогих сервисах.
                         </p>
                     </div>
                     <div class="text-xs font-semibold text-[#38BDF8] flex items-center gap-1.5 pt-2 border-t border-[#1C2538]">
                         <i class="fa-solid fa-piggy-bank"></i>
-                        <span>Экономия: до <b id="topupMaxSavings" class="text-[#00E676]">155 ₽</b></span>
+                        <span>Экономия: до <b id="topupMaxSavings" class="text-[#00E676]">180 ₽</b></span>
                     </div>
                 </div>
             </div>
@@ -1061,9 +1061,9 @@
             <div class="pt-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <!-- Payment methods -->
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="sidebar-stat mr-1">Способ оплаты:</span>
-                    <button class="topup-method-btn filter-btn filter-active" data-method="all" onclick="setTopupMethod('all')">Все способы</button>
-                    <button class="topup-method-btn filter-btn" data-method="sbp" onclick="setTopupMethod('sbp')"><i class="fa-solid fa-bolt text-xs mr-1 text-[#00D4FF]"></i>СБП (дешевле)</button>
+                    <span class="sidebar-stat mr-1">Принимают оплату:</span>
+                    <button class="topup-method-btn filter-btn filter-active" data-method="all" onclick="setTopupMethod('all')">Все сервисы</button>
+                    <button class="topup-method-btn filter-btn" data-method="sbp" onclick="setTopupMethod('sbp')"><i class="fa-solid fa-bolt text-xs mr-1 text-[#00D4FF]"></i>СБП</button>
                     <button class="topup-method-btn filter-btn" data-method="card" onclick="setTopupMethod('card')"><i class="fa-solid fa-credit-card text-xs mr-1"></i>Карты МИР</button>
                     <button class="topup-method-btn filter-btn" data-method="phone" onclick="setTopupMethod('phone')"><i class="fa-solid fa-mobile-screen text-xs mr-1 text-amber-400"></i>С телефона</button>
                     <button class="topup-method-btn filter-btn" data-method="cash" onclick="setTopupMethod('cash')"><i class="fa-solid fa-money-bill-wave text-xs mr-1 text-emerald-400"></i>Наличные</button>
@@ -1112,7 +1112,7 @@
                     <thead>
                         <tr class="border-b border-[#1C2538] text-[#64748B] uppercase tracking-wider font-semibold">
                             <th class="py-3 px-3">Сервис</th>
-                            <th class="py-3 px-3">Реальная комиссия</th>
+                            <th class="py-3 px-3">Комиссия сервиса</th>
                             <th class="py-3 px-3">Скорость</th>
                             <th class="py-3 px-3">Оплата</th>
                             <th class="py-3 px-3">Мин. сумма</th>
@@ -3442,15 +3442,15 @@ const TOPUP_SERVICES = [
         speedText: "1–2 минуты",
         speedType: "instant",
         minAmount: 107,
-        basePercent: 1.5,
+        basePercent: 0.0,
         fixedFee: 0,
         promoCode: "VREMYA",
-        promoDiscount: "Комиссия сервиса 0% (только ~1.5% эквайринг СБП)",
+        promoDiscount: "Комиссия сервиса 0% по промокоду VREMYA",
         methods: ["sbp", "card", "crypto"],
         methodLabels: ["СБП", "Карты", "Криптовалюта"],
         regions: ["RU", "KZ", "GLOBAL"],
         pros: [
-            "С промокодом комиссия сервиса 0% (остается только ~1.5% СБП)",
+            "С промокодом VREMYA комиссия сервиса составляет 0%",
             "Моментальное автозачисление (1–2 мин) без пароля",
             "Крупнейший игровой маркетплейс в РФ, гарантия сделки"
         ],
@@ -3459,9 +3459,7 @@ const TOPUP_SERVICES = [
             "Промокод нужно ввести при оформлении заказа"
         ],
         calc: (amount, method) => {
-            if (method === 'card') return Math.round(amount * 1.05);
-            if (method === 'crypto') return Math.round(amount * 1.03);
-            return Math.round(amount * 1.015);
+            return Math.round(amount);
         }
     },
     {
@@ -4264,17 +4262,19 @@ function calculateTopup() {
         filtered = [...TOPUP_SERVICES];
     }
 
-    // Calculate charge & overpay
+    // Calculate charge & overpay strictly based on the SERVICE COMMISSION (без наценок СБП, карт и сторонних эквайрингов)
     const calculated = filtered.map(s => {
-        const methodForCalc = currentTopupMethod === 'all' ? 'sbp' : currentTopupMethod;
-        const charge = s.calc(amount, methodForCalc);
-        const overpay = charge - amount;
-        const overpayPct = ((overpay / amount) * 100).toFixed(1);
+        const pct = typeof s.basePercent === 'number' ? s.basePercent : 0;
+        const fee = Math.round(amount * (pct / 100)) + (s.fixedFee || 0);
+        const charge = amount + fee;
+        const overpay = fee;
+        const overpayPct = pct.toFixed(1);
         return {
             ...s,
             charge,
             overpay,
-            overpayPct
+            overpayPct,
+            serviceFeePercent: pct
         };
     });
 
@@ -4301,7 +4301,7 @@ function calculateTopup() {
         const savingsEl  = document.getElementById('topupMaxSavings');
 
         if (bestNameEl) bestNameEl.textContent = best.name;
-        if (bestOverEl) bestOverEl.textContent = best.overpay === 0 ? 'без переплаты (0%)' : `переплата ~${best.overpay} ₽ (${best.overpayPct}%)`;
+        if (bestOverEl) bestOverEl.textContent = best.overpay === 0 ? 'комиссия сервиса 0%' : `комиссия сервиса ${best.serviceFeePercent}% (+${best.overpay.toLocaleString('ru-RU')} ₽)`;
         if (bestChgEl) bestChgEl.textContent = `${best.charge.toLocaleString('ru-RU')} ₽`;
         if (worstChgEl) worstChgEl.textContent = `${worst.charge.toLocaleString('ru-RU')} ₽`;
         if (savingsEl) savingsEl.textContent = `${savings.toLocaleString('ru-RU')} ₽`;
@@ -4391,15 +4391,15 @@ function renderTopupGrid(services, amount) {
                     </span>
                 </div>
 
-                <!-- Price Box -->
+                <!-- Price Box (Комиссия только сервиса) -->
                 <div class="p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538] mb-4">
                     <div class="flex items-baseline justify-between mb-1">
-                        <span class="text-xs text-[#64748B]">К списанию:</span>
-                        <span class="text-xl font-black text-white tabular-nums">${s.charge.toLocaleString('ru-RU')} ₽</span>
+                        <span class="text-xs text-[#64748B]">Комиссия сервиса:</span>
+                        <span class="text-xl font-black text-white tabular-nums">${s.serviceFeePercent === 0 ? '0%' : `+${s.serviceFeePercent}%`}</span>
                     </div>
                     <div class="flex items-center justify-between text-xs">
-                        <span class="text-[#4A5568]">Реальная переплата:</span>
-                        <span class="font-bold text-[#00E676]">${s.overpay === 0 ? '0 ₽ (без переплаты 0%)' : `+${s.overpay.toLocaleString('ru-RU')} ₽ (+${s.overpayPct}%)`}</span>
+                        <span class="text-[#4A5568]">К оплате (только сервис):</span>
+                        <span class="font-bold text-[#00E676]">${s.charge.toLocaleString('ru-RU')} ₽ ${s.overpay > 0 ? `(+${s.overpay.toLocaleString('ru-RU')} ₽)` : '(без комиссии)'}</span>
                     </div>
                 </div>
 
@@ -4470,7 +4470,7 @@ function renderTopupTable(services, amount) {
                 </div>
             </td>
             <td class="py-3 px-3">
-                <span class="font-bold text-[#00E676]">${s.overpay === 0 ? '0% (без переплаты)' : `+${s.overpayPct}%`}</span>
+                <span class="font-bold text-[#00E676]">${s.serviceFeePercent === 0 ? '0% (без комиссии)' : `+${s.serviceFeePercent}%`}</span>
                 <span class="text-[#4A5568] ml-1">(~${s.charge.toLocaleString('ru-RU')} ₽)</span>
             </td>
             <td class="py-3 px-3">${s.speedText}</td>
