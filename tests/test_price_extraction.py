@@ -59,8 +59,8 @@ class TestParsePriceUnit:
         assert parse_price("2 999,50 ₽") == 2999.5
         assert parse_price("1295 c") == 1295.0
         assert parse_price("149.00 wmr") == 149.0
-        assert parse_price("$45.00") == 45.0
-        assert parse_price("€39.99") == 39.99
+        assert parse_price("$45.00") == 4500.0  # Конвертируется в рубли (курс ~100)
+        assert parse_price("€39.99") == 4318.92  # Конвертируется в рубли (курс ~108)
         assert parse_price("от 599 р") == 599.0
 
     def test_html_markup_in_price(self):

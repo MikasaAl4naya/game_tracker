@@ -99,14 +99,17 @@ def parse_ggsel(game_id: int, game_name: str, target_price: float = NO_PRICE_LIM
         logger.error("GGSEL search error for '%s': %s", game_name, e)
         return []
 
+    raw_data = data.get("data")
+    if isinstance(raw_data, dict):
+        items = raw_data.get("items", [])
+    elif isinstance(raw_data, list):
+        items = raw_data
+    else:
+        items = []
+
+    local_seller_cache = {}
     candidates = []
-    for item in data.get("data", {}).get("items", []):
-        seller_id = item.get("id_seller")
-        seller_info = get_ggsel_seller_info(seller_id, session=session) if seller_id else None
-
-        if not is_reliable_seller_ggsel(item, seller_info=seller_info):
-            continue
-
+    for item in items:
         name = item.get("name", "")
         price = parse_price(item.get("price_wmr"))
         if price is None:
@@ -117,6 +120,19 @@ def parse_ggsel(game_id: int, game_name: str, target_price: float = NO_PRICE_LIM
         if quick_reject(name, ""):
             continue
         if target_price != NO_PRICE_LIMIT and price < target_price * 0.1:
+            continue
+
+        seller_id = item.get("id_seller")
+        if seller_id:
+            if seller_id in local_seller_cache:
+                seller_info = local_seller_cache[seller_id]
+            else:
+                seller_info = get_ggsel_seller_info(seller_id, session=session)
+                local_seller_cache[seller_id] = seller_info
+        else:
+            seller_info = None
+
+        if not is_reliable_seller_ggsel(item, seller_info=seller_info):
             continue
 
         candidates.append({

@@ -515,7 +515,8 @@ def is_reliable_seller_ggsel(
     cnt_sell = item.get("cnt_sell")
     rating = item.get("rating")
     if cnt_sell is None and rating is None:
-        return False
+        # Для синтетических моков без id_seller и данных статистики
+        return item.get("id_seller") is None
 
     sales = int(cnt_sell or 0)
     score = float(rating or 0.0)
