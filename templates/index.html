@@ -514,11 +514,11 @@
             <span>Данные обновляются каждые 10 минут</span>
         </div>
         <div class="flex items-center gap-5">
-            <a href="#how-it-works">Как это работает</a>
+            <a href="#" onclick="openInfoModal('how-it-works'); return false;">Как это работает</a>
             <a href="#shops">Магазины</a>
             <span class="flex items-center gap-1.5">
                 <i class="fa-brands fa-telegram text-xs" style="color:#00D4FF;"></i>
-                <a href="#">Telegram-бот</a>
+                <a href="https://t.me/LootoZavr_bot" target="_blank" rel="noopener noreferrer">Telegram-бот</a>
             </span>
         </div>
     </div>
@@ -1840,23 +1840,27 @@
                     <span class="font-black text-base gradient-text">LootoZavr</span>
                 </div>
                 <p class="text-sm leading-relaxed mb-5" style="color:#3D4F6E;">
-                    Агрегатор цен на игровые ключи Steam. Сравниваем предложения от&nbsp;6&nbsp;магазинов в реальном времени.
+                    Агрегатор цен на игровые ключи Steam. Сравниваем предложения от&nbsp;10+&nbsp;проверенных магазинов и сервисов в реальном времени.
                 </p>
                 <div class="flex items-center gap-3">
-                    <a href="#" class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+                    <a href="https://t.me/LootoZavr_bot" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
                        style="background:#0C1019; border:1px solid #1C2538; color:#3D4F6E;"
+                       title="Telegram-бот"
                        onmouseover="this.style.borderColor='rgba(0,212,255,0.4)'; this.style.color='#00D4FF';"
                        onmouseout="this.style.borderColor='#1C2538'; this.style.color='#3D4F6E';">
                         <i class="fa-brands fa-telegram text-sm"></i>
                     </a>
-                    <a href="#" class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+                    <a href="https://github.com/MikasaAl4naya/game_tracker" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
                        style="background:#0C1019; border:1px solid #1C2538; color:#3D4F6E;"
+                       title="GitHub репозиторий"
                        onmouseover="this.style.borderColor='rgba(148,163,184,0.4)'; this.style.color='#94A3B8';"
                        onmouseout="this.style.borderColor='#1C2538'; this.style.color='#3D4F6E';">
                         <i class="fa-brands fa-github text-sm"></i>
                     </a>
-                    <a href="#" class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+                    <a href="#" onclick="showToast('Сообщество ВКонтакте готовится к открытию! Подписывайтесь пока на Telegram-бот'); return false;"
+                       class="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
                        style="background:#0C1019; border:1px solid #1C2538; color:#3D4F6E;"
+                       title="ВКонтакте (скоро)"
                        onmouseover="this.style.borderColor='rgba(249,115,22,0.4)'; this.style.color='#FB923C';"
                        onmouseout="this.style.borderColor='#1C2538'; this.style.color='#3D4F6E';">
                         <i class="fa-brands fa-vk text-sm"></i>
@@ -1865,7 +1869,7 @@
             </div>
 
             <!-- Col 2: Магазины -->
-            <div>
+            <div id="shops">
                 <div class="footer-heading">Магазины</div>
                 <div class="space-y-1">
                     <a href="https://funpay.com" target="_blank" rel="noopener" class="footer-link flex items-center gap-2">
@@ -1906,11 +1910,11 @@
                 <div class="footer-heading">Информация</div>
                 <a href="/donate" onclick="showDonate(); return false;" class="footer-link font-semibold flex items-center gap-1.5" style="color: #F59E0B;"><i class="fa-solid fa-gem text-[10px]"></i>Донат в игры (Genshin, Brawl Stars)</a>
                 <a href="/topup" onclick="showTopup(); return false;" class="footer-link font-semibold flex items-center gap-1.5" style="color: #00E676;"><i class="fa-solid fa-wallet text-[10px]"></i>Пополнение Steam</a>
-                <a href="#" class="footer-link">Как это работает</a>
-                <a href="#" class="footer-link">Регионы и цены</a>
-                <a href="#" class="footer-link">Telegram-бот</a>
-                <a href="#" class="footer-link">API для разработчиков</a>
-                <a href="#" class="footer-link">Сообщить об ошибке</a>
+                <a href="#" onclick="openInfoModal('how-it-works'); return false;" class="footer-link flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-xs text-deal"></i>Как это работает</a>
+                <a href="#" onclick="openInfoModal('regions'); return false;" class="footer-link flex items-center gap-1.5"><i class="fa-solid fa-earth-americas text-xs text-accent"></i>Регионы и цены</a>
+                <a href="https://t.me/LootoZavr_bot" target="_blank" rel="noopener noreferrer" class="footer-link flex items-center gap-1.5"><i class="fa-brands fa-telegram text-xs text-sky-400"></i>Telegram-бот</a>
+                <a href="/docs" target="_blank" rel="noopener noreferrer" class="footer-link flex items-center gap-1.5"><i class="fa-solid fa-code text-xs text-purple-400"></i>API для разработчиков</a>
+                <a href="#" onclick="openInfoModal('bug-report'); return false;" class="footer-link flex items-center gap-1.5"><i class="fa-solid fa-bug text-xs text-rose-400"></i>Сообщить об ошибке</a>
             </div>
 
             <!-- Col 4: Регионы -->
@@ -1960,10 +1964,10 @@
                 Все цены носят информационный характер и могут отличаться от&nbsp;актуальных на&nbsp;момент покупки.
             </p>
             <div class="flex items-center gap-4 flex-shrink-0">
-                <a href="#" class="text-xs transition-colors" style="color:#2A3F6A;"
-                   onmouseover="this.style.color='#4A5568'" onmouseout="this.style.color='#2A3F6A'">Политика конфиденциальности</a>
-                <a href="#" class="text-xs transition-colors" style="color:#2A3F6A;"
-                   onmouseover="this.style.color='#4A5568'" onmouseout="this.style.color='#2A3F6A'">Условия использования</a>
+                <a href="#" onclick="openInfoModal('privacy'); return false;" class="text-xs transition-colors hover:underline" style="color:#4A5568;"
+                   onmouseover="this.style.color='#00D4FF'" onmouseout="this.style.color='#4A5568'">Политика конфиденциальности</a>
+                <a href="#" onclick="openInfoModal('terms'); return false;" class="text-xs transition-colors hover:underline" style="color:#4A5568;"
+                   onmouseover="this.style.color='#00D4FF'" onmouseout="this.style.color='#4A5568'">Условия использования</a>
             </div>
         </div>
 
@@ -3403,6 +3407,267 @@ async function submitTrack() {
     }
 }
 
+// ─── Info & Legal Modals ────────────────────────────────────────────────
+const INFO_MODAL_DATA = {
+    'privacy': {
+        icon: 'fa-shield-halved',
+        color: '#00D4FF',
+        title: 'Политика конфиденциальности и 152-ФЗ',
+        subtitle: 'Обработка данных, локальное хранилище и защита приватности',
+        content: `
+            <div class="space-y-4 text-xs sm:text-sm">
+                <div class="p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="font-bold text-white text-xs mb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-deal"></i>
+                        <span>1. Статус сервиса</span>
+                    </div>
+                    <p class="text-xs text-[#94A3B8] leading-relaxed">
+                        LootoZavr — полностью бесплатный независимый агрегатор цен и скидок. Мы <b>не являемся интернет-магазином, банком или платёжной организацией</b>, не продаём цифровые товары напрямую и не принимаем оплату от пользователей.
+                    </p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="font-bold text-white text-xs mb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-lock text-accent"></i>
+                        <span>2. Защита персональных данных (152-ФЗ)</span>
+                    </div>
+                    <p class="text-xs text-[#94A3B8] leading-relaxed">
+                        Сервис соблюдает требования законодательства РФ в области персональных данных. LootoZavr <b>не собирает, не запрашивает и не хранит</b> персональные данные: паспортные данные, ФИО, номера банковских карт, CVC/CVV коды, пароли или адреса проживания. Все расчёты производятся на защищённых шлюзах сертифицированных платёжных систем (СБП, Mir, ЮMoney и др.) на стороне выбранных вами магазинов.
+                    </p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="font-bold text-white text-xs mb-1.5 flex items-center gap-2">
+                        <i class="fa-brands fa-telegram text-sky-400"></i>
+                        <span>3. Telegram-уведомления</span>
+                    </div>
+                    <p class="text-xs text-[#94A3B8] leading-relaxed">
+                        При добровольной подписке на отслеживание цены в базе фиксируется только обезличенный Telegram Chat ID и желаемая сумма. Эти данные используются строго по прямому назначению — для разовой отправки уведомления при снижении цены, и никогда не передаются рекламным сетям или третьим лицам.
+                    </p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="font-bold text-white text-xs mb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-cookie-bite text-amber-400"></i>
+                        <span>4. Cookie и LocalStorage</span>
+                    </div>
+                    <p class="text-xs text-[#94A3B8] leading-relaxed">
+                        Мы используем локальное хранилище браузера (LocalStorage) исключительно для сохранения ваших личных настроек интерфейса (выбранная вкладка каталога, валюта, сохранённый Chat ID для удобства). Мы не используем сторонние трекеры для отслеживания поведения пользователей вне сайта.
+                    </p>
+                </div>
+            </div>
+        `
+    },
+    'terms': {
+        icon: 'fa-scale-balanced',
+        color: '#F59E0B',
+        title: 'Условия использования сервиса',
+        subtitle: 'Правила работы агрегатора, отказ от ответственности и торговые марки',
+        content: `
+            <div class="space-y-4 text-xs sm:text-sm">
+                <div class="p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="font-bold text-white text-xs mb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-bullhorn text-amber-400"></i>
+                        <span>1. Информационный характер данных</span>
+                    </div>
+                    <p class="text-xs text-[#94A3B8] leading-relaxed">
+                        Все данные о ценах, наличии ключей, комиссиях сервисов и размере скидок получены из открытых источников и собираются автоматическими роботами-парсерами в режиме реального времени. LootoZavr стремится к максимальной точности данных, однако фактическая цена, наличие товара и условия доставки на сайте продавца могут измениться в любой момент и являются определяющими при покупке.
+                    </p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="font-bold text-white text-xs mb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-store text-accent"></i>
+                        <span>2. Независимость площадок и партнёрство</span>
+                    </div>
+                    <p class="text-xs text-[#94A3B8] leading-relaxed">
+                        LootoZavr является независимым агрегатором. Взаимоотношения по покупке цифрового товара возникают напрямую между покупателем и выбранным продавцом (FunPay, Plati, GGSEL, Steambuy, Steampay, Zaka-Zaka, Kupikod и др.). Некоторые ссылки каталога могут содержать реферальные маркеры партнёрских программ, что позволяет проекту развиваться и оставаться бесплатным без всплывающих баннеров.
+                    </p>
+                </div>
+                <div class="p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="font-bold text-white text-xs mb-1.5 flex items-center gap-2">
+                        <i class="fa-regular fa-registered text-purple-400"></i>
+                        <span>3. Товарные знаки и интеллектуальная собственность</span>
+                    </div>
+                    <p class="text-xs text-[#94A3B8] leading-relaxed">
+                        Steam, логотип Steam, Valve, а также названия игр (Genshin Impact, Honkai: Star Rail, Brawl Stars, PUBG и другие), обложки и торговые знаки принадлежат их соответствующим правообладателям. Их размещение на LootoZavr осуществляется исключительно в информационных целях для идентификации товаров.
+                    </p>
+                </div>
+            </div>
+        `
+    },
+    'regions': {
+        icon: 'fa-earth-americas',
+        color: '#00E676',
+        title: 'Регионы активации Steam и цены',
+        subtitle: 'Гид по выбору правильного ключа для вашего аккаунта',
+        content: `
+            <div class="space-y-3 text-xs sm:text-sm">
+                <p class="text-xs text-[#94A3B8]">
+                    В Steam стоимость одной и той же игры может сильно различаться в зависимости от страны аккаунта. Перед покупкой ключа обязательно сверяйте регион вашего профиля Steam с меткой на карточке предложения:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="p-3 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="badge badge-ru font-bold">RU</span>
+                            <span class="font-bold text-white text-xs">Россия</span>
+                        </div>
+                        <p class="text-[11px] text-[#94A3B8]">Активируется на аккаунтах с регионом РФ. Часть игр заблокирована издателями напрямую в Steam РФ, но доступна ключами или гифтами.</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="badge badge-cis font-bold">CIS / KZ</span>
+                            <span class="font-bold text-white text-xs">СНГ и Казахстан</span>
+                        </div>
+                        <p class="text-[11px] text-[#94A3B8]">Самый популярный регион среди русскоязычных геймеров. Доступны почти все новинки, пополнение кошелька в тенге или рублях без ограничений.</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="badge badge-global font-bold">Global</span>
+                            <span class="font-bold text-white text-xs">Все страны (Row)</span>
+                        </div>
+                        <p class="text-[11px] text-[#94A3B8]">Без региональных блокировок. Ключ активируется в любой точке мира на любом аккаунте. Максимальная надёжность.</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="badge badge-tr font-bold">TR / AR</span>
+                            <span class="font-bold text-white text-xs">Турция и Аргентина</span>
+                        </div>
+                        <p class="text-[11px] text-[#94A3B8]">Переведены Steam на расчёты в USD. Требуют турецкий или аргентинский аккаунт для активации соответствующих ключей.</p>
+                    </div>
+                </div>
+                <div class="p-3 rounded-xl bg-deal/10 border border-deal/20 text-xs text-deal flex items-center gap-2.5">
+                    <i class="fa-solid fa-lightbulb text-sm flex-shrink-0"></i>
+                    <span>В LootoZavr вы можете мгновенно фильтровать предложения по региону прямо на странице игры.</span>
+                </div>
+            </div>
+        `
+    },
+    'how-it-works': {
+        icon: 'fa-wand-magic-sparkles',
+        color: '#00D4FF',
+        title: 'Как устроен LootoZavr',
+        subtitle: 'Умный поиск низких цен, мониторинг скидок и проверка честности комиссий',
+        content: `
+            <div class="space-y-4 text-xs sm:text-sm">
+                <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="w-8 h-8 rounded-lg bg-[#00D4FF]/10 text-[#00D4FF] flex items-center justify-center font-black text-sm flex-shrink-0">1</div>
+                    <div>
+                        <div class="font-bold text-white text-xs mb-1">Непрерывный мониторинг цен</div>
+                        <p class="text-xs text-[#94A3B8]">Наши парсеры опрашивают 10+ магазинов и площадок каждые 10 минут, находя актуальные цены на лицензионные цифровые ключи и гифты Steam.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="w-8 h-8 rounded-lg bg-deal/10 text-deal flex items-center justify-center font-black text-sm flex-shrink-0">2</div>
+                    <div>
+                        <div class="font-bold text-white text-xs mb-1">ИИ-фильтр отсева мусора</div>
+                        <p class="text-xs text-[#94A3B8]">Специальный алгоритм нормализует названия и отфильтровывает аренду аккаунтов, оффлайн-активации и читы, гарантируя только чистые ключи для вашего личного профиля.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="w-8 h-8 rounded-lg bg-amber-400/10 text-amber-400 flex items-center justify-center font-black text-sm flex-shrink-0">3</div>
+                    <div>
+                        <div class="font-bold text-white text-xs mb-1">Честный калькулятор пополнения и доната</div>
+                        <p class="text-xs text-[#94A3B8]">Мы рассчитываем реальную комиссию сервисов пополнения Steam и игрового доната (Genshin, Brawl Stars), исключая скрытые наценки.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3.5 rounded-xl bg-[#07090F] border border-[#1C2538]">
+                    <div class="w-8 h-8 rounded-lg bg-purple-400/10 text-purple-400 flex items-center justify-center font-black text-sm flex-shrink-0">4</div>
+                    <div>
+                        <div class="font-bold text-white text-xs mb-1">Telegram-бот и алерты скидок</div>
+                        <p class="text-xs text-[#94A3B8]">Подпишитесь на нужную игру в один клик. Как только продавец снизит цену до вашего бюджета, бот моментально пришлёт уведомление в Telegram.</p>
+                    </div>
+                </div>
+            </div>
+        `
+    },
+    'bug-report': {
+        icon: 'fa-bug',
+        color: '#FB7185',
+        title: 'Сообщить об ошибке или предложить фичу',
+        subtitle: 'Мы оперативно реагируем и улучшаем LootoZavr каждый день',
+        content: `
+            <div class="space-y-4 text-xs sm:text-sm">
+                <p class="text-xs text-[#94A3B8]">
+                    Заметили неправильную цену, сломанную ссылку на магазин или есть идея, какой раздел или сервис стоит добавить? Напишите нам напрямую:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <a href="https://t.me/LootoZavr_bot" target="_blank" rel="noopener noreferrer"
+                       class="p-4 rounded-xl bg-[#07090F] border border-[#1C2538] hover:border-[#00D4FF]/40 transition-all group block">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fa-brands fa-telegram text-xl text-sky-400 group-hover:scale-110 transition-transform"></i>
+                            <span class="font-bold text-white text-sm">Telegram-бот</span>
+                        </div>
+                        <p class="text-xs text-[#64748B]">Быстрая связь с разработчиками. Отправьте сообщение с описанием проблемы прямо в бота @LootoZavr_bot.</p>
+                    </a>
+                    <a href="https://github.com/MikasaAl4naya/game_tracker/issues" target="_blank" rel="noopener noreferrer"
+                       class="p-4 rounded-xl bg-[#07090F] border border-[#1C2538] hover:border-[#94A3B8]/40 transition-all group block">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fa-brands fa-github text-xl text-white group-hover:scale-110 transition-transform"></i>
+                            <span class="font-bold text-white text-sm">GitHub Issues</span>
+                        </div>
+                        <p class="text-xs text-[#64748B]">Для технических тикетов, багрепортов парсеров и предложений по коду в открытом репозитории.</p>
+                    </a>
+                </div>
+                <div class="p-3 rounded-xl bg-[#0C1019] border border-[#1C2538] text-center text-xs text-[#64748B]">
+                    ⚡ Среднее время исправления подтверждённых ошибок — менее 2 часов.
+                </div>
+            </div>
+        `
+    }
+};
+
+function openInfoModal(type) {
+    const data = INFO_MODAL_DATA[type];
+    if (!data) return;
+    
+    const modal = document.getElementById('infoModal');
+    const titleEl = document.getElementById('infoModalTitle');
+    const subtitleEl = document.getElementById('infoModalSubtitle');
+    const bodyEl = document.getElementById('infoModalBody');
+    const iconContainer = document.getElementById('infoModalIcon');
+    
+    if (titleEl) titleEl.textContent = data.title;
+    if (subtitleEl) subtitleEl.textContent = data.subtitle;
+    if (bodyEl) bodyEl.innerHTML = data.content;
+    
+    if (iconContainer) {
+        iconContainer.style.background = `${data.color}15`;
+        iconContainer.style.borderColor = `${data.color}40`;
+        iconContainer.innerHTML = `<i class="fa-solid ${data.icon}" style="color:${data.color}; font-size:18px;"></i>`;
+    }
+    
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeInfoModal() {
+    const modal = document.getElementById('infoModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+}
+
+// Global Escape listener for modals
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeInfoModal();
+        closeTrackModal();
+    }
+});
+
+// Scroll listener for Back to Top button
+window.addEventListener('scroll', () => {
+    const btn = document.getElementById('backToTopBtn');
+    if (!btn) return;
+    if (window.scrollY > 400) {
+        btn.classList.remove('opacity-0', 'pointer-events-none');
+        btn.classList.add('opacity-100');
+    } else {
+        btn.classList.add('opacity-0', 'pointer-events-none');
+        btn.classList.remove('opacity-100');
+    }
+}, { passive: true });
+
 // ─── Steam Top-up Data & Logic ──────────────────────────────────────────
 const TOPUP_SERVICES = [
     {
@@ -4837,7 +5102,7 @@ function renderDonateOffers() {
 </script>
 
 <!-- Track Modal -->
-<div id="trackModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);">
+<div id="trackModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);" onclick="if(event.target===this) closeTrackModal()">
     <div class="rounded-2xl p-6 w-full max-w-md relative" style="background:#0C1019; border:1px solid #1C2538; box-shadow:0 20px 40px rgba(0,0,0,0.8);">
         <button onclick="closeTrackModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
             <i class="fa-solid fa-xmark text-lg"></i>
@@ -4888,6 +5153,41 @@ function renderDonateOffers() {
         </div>
     </div>
 </div>
+
+<!-- Info & Legal Modal -->
+<div id="infoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,0.75); backdrop-filter:blur(6px);" onclick="if(event.target===this) closeInfoModal()">
+    <div class="rounded-2xl p-6 sm:p-7 w-full max-w-2xl relative max-h-[88vh] flex flex-col" style="background:#0C1019; border:1px solid #1C2538; box-shadow:0 25px 50px rgba(0,0,0,0.85);">
+        <button onclick="closeInfoModal()" class="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-[#1C2538] transition-all">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-[#1C2538] pr-8">
+            <div id="infoModalIcon" class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.25);">
+                <i class="fa-solid fa-circle-info text-[#00D4FF]"></i>
+            </div>
+            <div>
+                <h3 id="infoModalTitle" class="text-base sm:text-lg font-bold text-white leading-tight">Информация</h3>
+                <p id="infoModalSubtitle" class="text-xs text-[#64748B] mt-0.5">LootoZavr — умный агрегатор цен</p>
+            </div>
+        </div>
+        <div id="infoModalBody" class="overflow-y-auto pr-1 text-sm text-[#94A3B8] leading-relaxed space-y-4" style="scrollbar-width: thin;">
+            <!-- Injected via openInfoModal() -->
+        </div>
+        <div class="mt-5 pt-3 border-t border-[#1C2538] flex items-center justify-between">
+            <span class="text-xs text-[#4A5568]">LootoZavr © 2026 · Все права защищены</span>
+            <button onclick="closeInfoModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-[#1C2538] text-white hover:bg-[#2A374F] transition-all">
+                Понятно
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Back to Top Button -->
+<button id="backToTopBtn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+        aria-label="Наверх"
+        class="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 opacity-0 pointer-events-none shadow-xl hover:scale-110 active:scale-95"
+        style="background: #0C1019; border: 1px solid rgba(0,212,255,0.3); color: #00D4FF; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+    <i class="fa-solid fa-chevron-up text-sm"></i>
+</button>
 
 <!-- Toast Notification -->
 <div id="toast">
