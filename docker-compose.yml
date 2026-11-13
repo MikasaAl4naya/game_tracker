@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. База данных
+  # 1. База данных (доступна только внутри Docker-сети)
   db:
     image: postgres:15-alpine
     env_file: .env
@@ -9,24 +9,19 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
 
-  # 2. Redis (кэш и бэкенд Celery)
+  # 2. Redis (доступен только внутри Docker-сети)
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
     restart: always
 
-  # 3. RabbitMQ (брокер сообщений Celery)
+  # 3. RabbitMQ — управление доступно снаружи, брокер только внутри
   rabbitmq:
     image: rabbitmq:3-management-alpine
     ports:
-      - "5672:5672"
       - "15672:15672"
     restart: always
 
@@ -36,7 +31,7 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     env_file: .env
     ports:
-      - "8000:8000"
+      - "8080:8000"
     depends_on:
       - db
       - redis
@@ -48,6 +43,9 @@ services:
     build: .
     command: celery -A worker worker --concurrency=3 --loglevel=info
     env_file: .env
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     depends_on:
       - rabbitmq
       - redis
@@ -55,7 +53,7 @@ services:
     volumes:
       - .:/app
 
-  # 6. Celery Beat (планировщик: ночное обновление Steam, проверка цен каждые 12 ч)
+  # 6. Celery Beat (планировщик регулярных обновлений цен и каталога)
   beat:
     build: .
     command: celery -A worker beat --loglevel=INFO
@@ -64,6 +62,8 @@ services:
       - rabbitmq
       - redis
       - db
+    volumes:
+      - .:/app
 
   # 7. Flower (мониторинг Celery)
   flower:
@@ -76,6 +76,18 @@ services:
       - rabbitmq
       - redis
       - worker
+
+  # 8. Telegram-бот (отслеживание цен и мгновенные уведомления 24/7)
+  bot:
+    build: .
+    command: python bot.py
+    env_file: .env
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+    restart: always
 
 volumes:
   postgres_data:

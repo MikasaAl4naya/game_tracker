@@ -30,9 +30,19 @@ env/
 htmlcov/
 
 # Celery
-celerybeat-schedule
-celerybeat-schedule.db
+celerybeat-schedule*
 celerybeat.pid
+
+# Claude / AI
+.claude/
+
+# Cookies & Browser Sessions
+cookies.json
+*.cookies.json
+
+# Screenshots
+screenshots/
+*.png
 
 # Alembic
 *.pyc
