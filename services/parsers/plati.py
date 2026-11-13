@@ -45,7 +45,7 @@ def parse_plati(game_id: int, game_name: str, target_price: float = NO_PRICE_LIM
 
     candidates = []
     for item in data.get("items", []):
-        if not is_reliable_seller_plati(item, min_sales=5, min_positive_ratio=0.90):
+        if not is_reliable_seller_plati(item, min_sales=25, min_positive_ratio=0.95):
             continue
 
         name = item.get("name", "")

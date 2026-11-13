@@ -29,7 +29,7 @@ def parse_funpay(game_id: int, url: str, target_price: float = NO_PRICE_LIMIT, g
     candidates = []
     for lot in lots:
         try:
-            is_trusted, is_online = is_reliable_seller_funpay(lot, min_reviews=5)
+            is_trusted, is_online = is_reliable_seller_funpay(lot, min_reviews=20)
             if not is_trusted:
                 continue
 

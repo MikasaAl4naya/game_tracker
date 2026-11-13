@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 
 _HARDWARE_KEYWORDS = (
     "nvidia", "rtx", "гпу", "gpu", "видеокарт", "radeon", "rx ", "amd ", "intel ",
@@ -427,10 +428,10 @@ def parse_price(val: object) -> float | None:
         return None
 
 
-def is_reliable_seller_funpay(lot_soup, min_reviews: int = 5) -> tuple[bool, bool]:
+def is_reliable_seller_funpay(lot_soup, min_reviews: int = 20) -> tuple[bool, bool]:
     """
     Проверяет надежность продавца на FunPay:
-    - min_reviews: минимальное количество отзывов (по умолчанию 5)
+    - min_reviews: минимальное количество отзывов (по умолчанию >= 20)
     - rating: исключает рейтинг 1, 2, 3 звезды
     - online: определяет статус онлайн (data-online="1")
     Возвращает (is_trusted, is_online).
@@ -458,19 +459,66 @@ def is_reliable_seller_funpay(lot_soup, min_reviews: int = 5) -> tuple[bool, boo
     return True, is_online
 
 
-def is_reliable_seller_ggsel(item: dict, min_sales: int = 5, min_rating: float = 4.0) -> bool:
+def is_reliable_seller_ggsel(
+    item: dict,
+    seller_info: dict | None = None,
+    min_sales: int = 50,
+    min_rating: float = 4.75,
+    min_seller_sales: int = 100,
+    min_seller_reviews: int = 15,
+    max_bad_ratio: float = 0.06,
+    min_reg_days: int = 14,
+) -> bool:
     """
-    Проверяет надежность продавца на GGSEL:
-    - cnt_sell: количество успешных продаж (по умолчанию >= 5)
-    - rating: рейтинг продавца (по умолчанию >= 4.0)
+    Проверяет надежность продавца на GGSEL с защитой от скама и продавцов-однодневок:
+    1. Если есть seller_info (детальная статистика аккаунта продавца):
+       - total_sales: общие продажи продавца >= min_seller_sales (по умолчанию >= 100)
+       - good_reviews: количество положительных отзывов >= min_seller_reviews (по умолчанию >= 15)
+       - rating: общий рейтинг продавца >= min_rating (по умолчанию >= 4.75)
+       - bad_ratio: доля отрицательных отзывов <= max_bad_ratio (по умолчанию <= 6%)
+       - reg_days: возраст аккаунта продавца >= min_reg_days (по умолчанию >= 14 дней)
+    2. Fallback (если seller_info недоступен):
+       - cnt_sell: продажи лота >= min_sales (по умолчанию >= 50)
+       - rating: рейтинг >= min_rating (по умолчанию >= 4.75)
     """
+    if seller_info:
+        total_sales = int(seller_info.get("total_sales") or 0)
+        good_reviews = int(seller_info.get("good_reviews") or 0)
+        bad_reviews = int(seller_info.get("bad_reviews") or 0)
+        rating = float(seller_info.get("rating") or 0.0)
+        registered = seller_info.get("registered")
+
+        if total_sales < min_seller_sales:
+            return False
+        if good_reviews < min_seller_reviews:
+            return False
+        if rating < min_rating:
+            return False
+
+        tot_rev = good_reviews + bad_reviews
+        if tot_rev > 0 and (bad_reviews / tot_rev) > max_bad_ratio:
+            return False
+
+        if registered and min_reg_days > 0:
+            try:
+                date_str = str(registered)[:10]
+                reg_dt = datetime.strptime(date_str, "%Y-%m-%d")
+                age_days = (datetime.utcnow() - reg_dt).days
+                if age_days < min_reg_days:
+                    return False
+            except Exception:
+                pass
+
+        return True
+
+    # Fallback на данные лота (если статистика продавца не получена)
     cnt_sell = item.get("cnt_sell")
     rating = item.get("rating")
     if cnt_sell is None and rating is None:
-        return True
+        return False
 
     sales = int(cnt_sell or 0)
-    score = float(rating or 0)
+    score = float(rating or 0.0)
 
     if sales < min_sales:
         return False
@@ -480,16 +528,16 @@ def is_reliable_seller_ggsel(item: dict, min_sales: int = 5, min_rating: float =
 
 
 def is_reliable_seller_plati(
-    item: dict, min_sales: int = 5, min_positive_ratio: float = 0.90
+    item: dict, min_sales: int = 25, min_positive_ratio: float = 0.95
 ) -> bool:
     """
     Проверяет надежность продавца на Plati.market:
-    - numsold: количество продаж товара (по умолчанию >= 5)
-    - count_positiveresponses / count_negativeresponses: процент положительных отзывов >= 90%
+    - numsold: количество продаж товара (по умолчанию >= 25)
+    - count_positiveresponses / count_negativeresponses: процент положительных отзывов >= 95%
     """
     numsold = item.get("numsold")
     if numsold is None:
-        return True
+        return False
 
     sales = int(numsold or 0)
     if sales < min_sales:

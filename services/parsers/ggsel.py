@@ -15,6 +15,53 @@ from services.parsers.base import get_http_session
 logger = logging.getLogger(__name__)
 
 
+def get_ggsel_seller_info(seller_id: int, session=None) -> dict:
+    """
+    Получает и кэширует в Redis (на 3 дня) детальную статистику профиля продавца GGSEL:
+    общие продажи, положительные/отрицательные отзывы, рейтинг, дату регистрации.
+    """
+    cache_key = f"seller_cache:ggsel:{seller_id}"
+    try:
+        cached = redis_client.get(cache_key)
+        if cached:
+            return json.loads(cached)
+    except Exception:
+        pass
+
+    s = session or get_http_session()
+    try:
+        resp = s.get(
+            f"https://api.ggsel.com/sellers/{seller_id}",
+            headers={"Origin": "https://ggsel.net"},
+            timeout=2.5,
+        )
+        if resp.status_code == 200:
+            data = resp.json().get("data", {})
+            stats = data.get("statistics", {})
+            info = {
+                "seller_id": seller_id,
+                "name": data.get("name_seller"),
+                "total_sales": stats.get("cnt_sell", 0),
+                "good_reviews": stats.get("cnt_good_responses", 0),
+                "bad_reviews": stats.get("cnt_bad_responses", 0),
+                "rating": float(data.get("rating") or stats.get("rating") or 0.0),
+                "registered": data.get("date_registration"),
+            }
+            try:
+                redis_client.setex(cache_key, 86400 * 3, json.dumps(info))
+            except Exception:
+                pass
+            return info
+        else:
+            try:
+                redis_client.setex(cache_key, 3600, json.dumps({"total_sales": 0, "rating": 0.0}))
+            except Exception:
+                pass
+    except Exception as e:
+        logger.debug("Failed to fetch GGSEL seller %s stats: %s", seller_id, e)
+    return {}
+
+
 def parse_ggsel(game_id: int, game_name: str, target_price: float = NO_PRICE_LIMIT) -> list[dict]:
     cache_key = f"price_cache:ggsel:{game_name}"
     try:
@@ -54,7 +101,10 @@ def parse_ggsel(game_id: int, game_name: str, target_price: float = NO_PRICE_LIM
 
     candidates = []
     for item in data.get("data", {}).get("items", []):
-        if not is_reliable_seller_ggsel(item, min_sales=5, min_rating=4.0):
+        seller_id = item.get("id_seller")
+        seller_info = get_ggsel_seller_info(seller_id, session=session) if seller_id else None
+
+        if not is_reliable_seller_ggsel(item, seller_info=seller_info):
             continue
 
         name = item.get("name", "")

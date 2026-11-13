@@ -411,6 +411,48 @@ class TestReliableSellerFilters:
         item = {"seller_name": "LegitMarket", "cnt_sell": 661, "rating": 5.0}
         assert is_reliable_seller_ggsel(item, min_sales=5, min_rating=4.0)
 
+    def test_ggsel_seller_profile_few_sales_and_reviews_rejected(self):
+        # Реальный кейс пользователя: 5 продаж, 1 отзыв, рейтинг 4.9
+        item = {"seller_name": "NoviceSeller", "cnt_sell": 5, "rating": 4.9}
+        seller_info = {
+            "seller_id": 999999,
+            "name": "NoviceSeller",
+            "total_sales": 5,
+            "good_reviews": 1,
+            "bad_reviews": 0,
+            "rating": 4.9,
+            "registered": "2026-10-01",
+        }
+        assert not is_reliable_seller_ggsel(item, seller_info=seller_info)
+
+    def test_ggsel_seller_profile_brand_new_account_rejected(self):
+        # Продавец-однодневка, зарегистрирован несколько дней назад
+        item = {"seller_name": "ZenithShield", "cnt_sell": 0, "rating": 5.0}
+        seller_info = {
+            "seller_id": 173739983,
+            "name": "ZenithShield",
+            "total_sales": 6,
+            "good_reviews": 0,
+            "bad_reviews": 0,
+            "rating": 5.0,
+            "registered": "2026-11-05",
+        }
+        assert not is_reliable_seller_ggsel(item, seller_info=seller_info)
+
+    def test_ggsel_seller_profile_trusted_accepted(self):
+        # Крупный проверенный продавец
+        item = {"seller_name": "LegitMarket", "cnt_sell": 1, "rating": 4.9}
+        seller_info = {
+            "seller_id": 1261486,
+            "name": "LegitMarket",
+            "total_sales": 1116724,
+            "good_reviews": 51871,
+            "bad_reviews": 182,
+            "rating": 4.9,
+            "registered": "2024-02-06",
+        }
+        assert is_reliable_seller_ggsel(item, seller_info=seller_info)
+
     def test_plati_seller_with_zero_sales_rejected(self):
         item = {"seller_name": "Novoreg", "numsold": 0, "count_positiveresponses": 0, "count_negativeresponses": 0}
         assert not is_reliable_seller_plati(item, min_sales=5)
