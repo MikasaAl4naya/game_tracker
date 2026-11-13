@@ -27,4 +27,5 @@ def get_http_session() -> requests.Session:
         _session.mount("https://", adapter)
         _session.mount("http://", adapter)
         _session.headers.update(DEFAULT_HEADERS)
+        _session.cookies.set("cy", "rub", domain=".funpay.com")
     return _session

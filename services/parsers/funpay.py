@@ -12,7 +12,14 @@ logger = logging.getLogger(__name__)
 def parse_funpay(game_id: int, url: str, target_price: float = NO_PRICE_LIMIT, game_name: str = "") -> list[dict]:
     session = get_http_session()
     try:
-        resp = session.get(url, timeout=10)
+        # Force Russian Rubles (RUB) currency in FunPay session and headers
+        session.cookies.set("cy", "rub", domain=".funpay.com")
+        resp = session.get(
+            url,
+            cookies={"cy": "rub"},
+            headers={"Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7"},
+            timeout=10,
+        )
         soup = BeautifulSoup(resp.text, "html.parser")
         lots = soup.find_all(class_="tc-item")
     except Exception as e:
@@ -43,6 +50,18 @@ def parse_funpay(game_id: int, url: str, target_price: float = NO_PRICE_LIMIT, g
                 continue
 
             price = round(float(price_div["data-s"]), 2)
+
+            # Currency unit check & conversion safeguard
+            price_text = price_div.text.strip().lower()
+            if "$" in price_text or "usd" in price_text:
+                price = round(price * 92.0, 2)
+            elif "€" in price_text or "eur" in price_text:
+                price = round(price * 100.0, 2)
+
+            # Anti-glitch sanity check: full commercial games are never sold for < 45 RUB on FunPay
+            if price < 45.0:
+                continue
+
             if target_price != NO_PRICE_LIMIT and price < target_price * 0.1:
                 continue
             if quick_reject(name, platform_tag):
