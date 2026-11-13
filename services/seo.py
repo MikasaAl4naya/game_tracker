@@ -22,7 +22,7 @@ def generate_seo_meta_tags(
     """Генерирует динамические мета-теги, OpenGraph и Schema.org разметку."""
     if custom_title:
         title = custom_title
-        description = custom_description or "Сравнение сервисов и цен на GameDeals."
+        description = custom_description or "Сравнение сервисов и цен на LootoZavr."
         image_url = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80"
         tags = [
             f"<title>{title}</title>",
@@ -33,7 +33,7 @@ def generate_seo_meta_tags(
             f'<meta property="og:description" content="{description}">',
             f'<meta property="og:url" content="{page_url}">',
             f'<meta property="og:image" content="{image_url}">',
-            f'<meta property="og:site_name" content="GameDeals">',
+            f'<meta property="og:site_name" content="LootoZavr">',
             f'<meta name="twitter:card" content="summary_large_image">',
             f'<meta name="twitter:title" content="{title}">',
             f'<meta name="twitter:description" content="{description}">',
@@ -46,7 +46,7 @@ def generate_seo_meta_tags(
         min_price_str = f"от {int(min_price):,} ₽".replace(",", " ") if min_price else "по лучшей цене"
         count_str = f"в {offer_count} магазинах" if offer_count else "в проверенных магазинах"
 
-        title = f"{escaped_name} — Купить ключ дешево {min_price_str} | GameDeals"
+        title = f"{escaped_name} — Купить ключ дешево {min_price_str} | LootoZavr"
         description = (
             f"Сравнение цен на цифровой ключ {escaped_name} {min_price_str} {count_str}. "
             f"Цены в Steam, Plati, Steambuy, Steampay, GGSEL, Zaka-Zaka, GabeStore, Gamerilla, GamersBase. Без аккаунтов и скама."
@@ -85,7 +85,7 @@ def generate_seo_meta_tags(
             f'<meta property="og:description" content="{description}">',
             f'<meta property="og:url" content="{page_url}">',
             f'<meta property="og:image" content="{image_url}">',
-            f'<meta property="og:site_name" content="GameDeals">',
+            f'<meta property="og:site_name" content="LootoZavr">',
             # Twitter
             f'<meta name="twitter:card" content="summary_large_image">',
             f'<meta name="twitter:title" content="{title}">',
@@ -95,9 +95,9 @@ def generate_seo_meta_tags(
             f'<script type="application/ld+json">{json.dumps(schema_data, ensure_ascii=False)}</script>',
         ]
     else:
-        title = "GameDeals — Агрегатор цен на игры Steam | Сравнение предложений и скидки"
+        title = "LootoZavr — Агрегатор цен на игры Steam | Сравнение предложений и скидки"
         description = (
-            "GameDeals: умный агрегатор цен на ключи к играм Steam. Сравниваем предложения "
+            "LootoZavr: умный агрегатор цен на ключи к играм Steam. Сравниваем предложения "
             "Plati, Steambuy, Steampay, GGSEL, Zaka-Zaka, GabeStore, Gamerilla, GamersBase с официальными региональными ценами Steam. "
             "Только реальные ключи, защита от скама и история цен."
         )
@@ -112,7 +112,7 @@ def generate_seo_meta_tags(
             f'<meta property="og:description" content="{description}">',
             f'<meta property="og:url" content="{page_url}">',
             f'<meta property="og:image" content="{image_url}">',
-            f'<meta property="og:site_name" content="GameDeals">',
+            f'<meta property="og:site_name" content="LootoZavr">',
             f'<meta name="twitter:card" content="summary_large_image">',
         ]
 
