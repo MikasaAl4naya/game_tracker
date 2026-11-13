@@ -2336,7 +2336,10 @@ function renderSidebar(data) {
             const unavail = price === 'Недоступно';
             steamBox.innerHTML += `
                 <div class="steam-row">
-                    <span class="text-xs flex items-center gap-1.5" style="color:#64748B;">${badge} ${region}</span>
+                    <span class="text-xs flex items-center gap-1.5" style="color:#64748B;">
+                        <img src="https://www.google.com/s2/favicons?domain=store.steampowered.com&sz=32" class="w-3.5 h-3.5 object-contain" alt="Steam" onerror="this.style.display='none'">
+                        ${badge} ${region}
+                    </span>
                     <span class="text-sm font-semibold ${unavail ? 'opacity-30' : ''}" style="color:${unavail?'#64748B':'#E2E8F0'};">${price}</span>
                 </div>`;
         }
@@ -2643,6 +2646,34 @@ function getShopIcon(shop) {
     return 'fa-solid fa-shop';
 }
 
+function getShopLogo(shopName, lotUrl) {
+    if (lotUrl) {
+        try {
+            const parsed = new URL(lotUrl);
+            if (parsed.hostname) {
+                const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+                return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+            }
+        } catch (e) {}
+    }
+    const s = (shopName || '').toLowerCase();
+    let domain = 'store.steampowered.com';
+    if (s.includes('funpay'))        domain = 'funpay.com';
+    else if (s.includes('plati'))   domain = 'plati.market';
+    else if (s.includes('ggsel'))   domain = 'ggsel.net';
+    else if (s.includes('steambuy')) domain = 'steambuy.com';
+    else if (s.includes('steampay')) domain = 'steampay.com';
+    else if (s.includes('zaka'))    domain = 'zaka-zaka.com';
+    else if (s.includes('gabe'))    domain = 'gabestore.ru';
+    else if (s.includes('gamerilla')) domain = 'gamerilla.ru';
+    else if (s.includes('gamersbase')) domain = 'gamersbase.store';
+    else if (s.includes('keysforgamers') || s.includes('difmark')) domain = 'keysforgamers.com';
+    else if (s.includes('kupikod')) domain = 'kupikod.com';
+    else if (s.includes('steam'))   domain = 'store.steampowered.com';
+
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+}
+
 // ─── Hero Banner & Best Deal Spotlight ───────────────────────────────────
 function renderHero(data) {
     const banner = document.getElementById('gameHeroBanner');
@@ -2736,7 +2767,12 @@ function renderHero(data) {
         const sorted = [...offers].sort((a, b) => a.price - b.price);
         const best = sorted[0];
 
-        document.getElementById('heroDealShop').textContent = best.shop;
+        const dealShopEl = document.getElementById('heroDealShop');
+        const bestLogo = best.shop_logo || getShopLogo(best.shop, best.url);
+        dealShopEl.innerHTML = `
+            <img src="${bestLogo}" alt="${best.shop}" class="w-3.5 h-3.5 rounded-sm object-contain flex-shrink-0" onerror="this.style.display='none'">
+            <span>${best.shop}</span>
+        `;
         document.getElementById('heroDealPrice').textContent = `${best.price.toLocaleString('ru-RU')} ₽`;
         
         let discountPct = '';
@@ -2812,6 +2848,7 @@ function renderCards(offers) {
         const shopClass    = getShopClass(offer.shop);
         const shopIcon     = getShopIcon(offer.shop);
         const platInfo     = getPlatformBadge(offer.platform);
+        const logoUrl      = offer.shop_logo || getShopLogo(offer.shop, offer.url);
 
         const lowerLot  = (offer.lot_name || '').toLowerCase();
         const lowerShop = (offer.shop || '').toLowerCase();
@@ -2861,8 +2898,9 @@ function renderCards(offers) {
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-2 flex-wrap">
                                 <span class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold ${shopClass}">
-                                    <i class="${shopIcon} text-[10px]"></i>
-                                    ${offer.shop}
+                                    <img src="${logoUrl}" alt="${offer.shop}" class="w-3.5 h-3.5 rounded-sm object-contain flex-shrink-0" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                                    <i class="${shopIcon} text-[10px] hidden"></i>
+                                    <span>${offer.shop}</span>
                                 </span>
                                 <span class="badge ${platInfo.cls}">
                                     <i class="${platInfo.icon} text-[9px]"></i> ${platInfo.label}
@@ -4331,9 +4369,14 @@ function renderTopupGrid(services, amount) {
                 <!-- Card Header -->
                 <div class="flex items-start justify-between gap-3 mb-3">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
                              style="background: rgba(255,255,255,0.04); border: 1px solid #1C2538;">
-                            <i class="${s.logoIcon} text-base" style="color: ${s.accentColor};"></i>
+                            <img src="https://www.google.com/s2/favicons?domain=${s.site}&sz=64"
+                                 alt="${s.name}"
+                                 class="w-6 h-6 object-contain rounded"
+                                 loading="lazy"
+                                 onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                            <i class="${s.logoIcon} text-base hidden" style="color: ${s.accentColor};"></i>
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
@@ -4416,7 +4459,12 @@ function renderTopupTable(services, amount) {
         tr.innerHTML = `
             <td class="py-3 px-3">
                 <div class="flex items-center gap-2">
-                    <i class="${s.logoIcon}" style="color: ${s.accentColor};"></i>
+                    <img src="https://www.google.com/s2/favicons?domain=${s.site}&sz=32"
+                         alt="${s.name}"
+                         class="w-4 h-4 object-contain rounded flex-shrink-0"
+                         loading="lazy"
+                         onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                    <i class="${s.logoIcon} hidden" style="color: ${s.accentColor};"></i>
                     <b class="text-white">${s.name}</b>
                     ${s.promoCode ? `<span onclick="copyPromoCode('${s.promoCode}', event)" class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#00E676]/15 text-[#00E676] border border-[#00E676]/30 cursor-pointer hover:bg-[#00E676]/25 transition-colors" title="Скопировать промокод">🎟️ ${s.promoCode}</span>` : ''}
                 </div>
@@ -4735,8 +4783,13 @@ function renderDonateOffers() {
 
         row.innerHTML = `
             <div class="flex items-start sm:items-center gap-3 min-w-0">
-                <div class="w-10 h-10 rounded-xl bg-[#161F30] border border-[#1C2538] flex items-center justify-center flex-shrink-0 font-black text-sm text-[#00D4FF]">
-                    ${o.shop_name.slice(0, 2).toUpperCase()}
+                <div class="w-10 h-10 rounded-xl bg-[#161F30] border border-[#1C2538] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <img src="${getShopLogo(o.shop_name, o.url)}"
+                         alt="${o.shop_name}"
+                         class="w-6 h-6 object-contain rounded"
+                         loading="lazy"
+                         onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                    <span class="font-black text-sm text-[#00D4FF] hidden">${o.shop_name.slice(0, 2).toUpperCase()}</span>
                 </div>
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 flex-wrap mb-1">

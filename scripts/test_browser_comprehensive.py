@@ -105,6 +105,11 @@ async def run_tests():
         print(f"  Initial offer cards with All filters: {len(all_cards)}")
         assert len(all_cards) > 0, "No offer cards found for Hogwarts Legacy!"
 
+        # Check shop logos on cards
+        shop_logos = await page.locator(".offer-card img").all()
+        print(f"  Found {len(shop_logos)} shop logo images on offer cards.")
+        assert len(shop_logos) > 0, "No shop logos found on offer cards!"
+
         game_shot = os.path.join(SCREENSHOTS_DIR, "03_hogwarts_all_offers.png")
         await page.screenshot(path=game_shot, full_page=False)
         print(f"  📸 Saved Hogwarts Legacy all-offers screenshot to {game_shot}")
@@ -240,6 +245,10 @@ async def run_tests():
         service_cards = await page.locator(".topup-service-card, #topupServicesGrid > div").all()
         print(f"  Found {len(service_cards)} top-up service cards.")
         assert len(service_cards) > 0, "No topup service cards found!"
+
+        topup_logos = await page.locator(".topup-service-card img").all()
+        print(f"  Found {len(topup_logos)} service logo images on top-up cards.")
+        assert len(topup_logos) > 0, "No service logos found on top-up cards!"
 
         topup_shot = os.path.join(SCREENSHOTS_DIR, "08_topup_section.png")
         await page.screenshot(path=topup_shot, full_page=False)

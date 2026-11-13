@@ -469,6 +469,50 @@ async def add_tracking_task(task: TaskCreateRequest, db: AsyncSession = Depends(
     return {"status": "success", "task_id": new_task.id, "message": f"Ищем '{game.name}' везде!"}
 
 
+def get_shop_domain(shop_name: str, url: str | None = None) -> str:
+    """Извлекает или определяет домен сайта для парсинга и отображения логотипа."""
+    if url:
+        try:
+            from urllib.parse import urlparse
+            netloc = urlparse(url).netloc
+            if netloc:
+                return netloc.lower().replace("www.", "")
+        except Exception:
+            pass
+    s = (shop_name or "").lower()
+    if "funpay" in s:
+        return "funpay.com"
+    if "plati" in s:
+        return "plati.market"
+    if "ggsel" in s:
+        return "ggsel.net"
+    if "steambuy" in s:
+        return "steambuy.com"
+    if "steampay" in s:
+        return "steampay.com"
+    if "zaka" in s:
+        return "zaka-zaka.com"
+    if "gabe" in s:
+        return "gabestore.ru"
+    if "gamerilla" in s:
+        return "gamerilla.ru"
+    if "gamersbase" in s:
+        return "gamersbase.store"
+    if "keysforgamers" in s or "difmark" in s:
+        return "keysforgamers.com"
+    if "kupikod" in s:
+        return "kupikod.com"
+    if "steam" in s:
+        return "store.steampowered.com"
+    return "store.steampowered.com"
+
+
+def get_shop_logo_url(shop_name: str, url: str | None = None) -> str:
+    """Возвращает URL официального логотипа/фавикона магазина высокого разрешения."""
+    domain = get_shop_domain(shop_name, url)
+    return f"https://www.google.com/s2/favicons?domain={domain}&sz=64"
+
+
 @app.get("/api/prices/{game_id}")
 async def get_game_prices(
     game_id: int,
@@ -510,6 +554,8 @@ async def get_game_prices(
             current_offers.append({
                 "id": p.id,
                 "shop": p.shop_name,
+                "shop_domain": get_shop_domain(p.shop_name, p.lot_url),
+                "shop_logo": get_shop_logo_url(p.shop_name, p.lot_url),
                 "price": p.price,
                 "lot_name": p.lot_name,
                 "url": p.lot_url,
