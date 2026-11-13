@@ -6,6 +6,7 @@ import httpx
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sqlalchemy import func, case
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -50,6 +51,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/manifest.json", include_in_schema=False)
+async def serve_manifest():
+    if os.path.exists("static/manifest.json"):
+        return FileResponse("static/manifest.json", media_type="application/manifest+json")
+    raise HTTPException(status_code=404, detail="Manifest not found")
+
+
+@app.get("/sw.js", include_in_schema=False)
+async def serve_sw():
+    if os.path.exists("static/sw.js"):
+        return FileResponse("static/sw.js", media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="Service worker not found")
 
 
 # ---------- МОДЕЛИ ЗАПРОСОВ ----------

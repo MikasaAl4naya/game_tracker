@@ -8,6 +8,18 @@
     <meta name="description" content="LootoZavr: сравнение цен на игры и ключи Steam в магазинах Рунета: Plati, Steambuy, Steampay, GGSEL, Zaka-Zaka, GabeStore, Gamerilla, GamersBase. Только проверенные ключи и история цен.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
     <!-- SEO_META_BLOCK_END -->
+
+    <!-- PWA & Mobile Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#07090F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LootoZavr">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.svg">
+
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,6 +58,24 @@
         ::-webkit-scrollbar-track { background: #07090F; }
         ::-webkit-scrollbar-thumb { background: #1C2538; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #263048; }
+
+        /* ── Skeleton Shimmer Effect ── */
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .shimmer-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer-effect::after {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.04) 20%, rgba(255, 255, 255, 0.08) 60%, rgba(255, 255, 255, 0));
+            animation: shimmer 1.8s infinite;
+            content: '';
+        }
 
         /* ── Nav ── */
         .nav-glass {
@@ -645,6 +675,11 @@
                         <i class="fa-brands fa-steam text-accent"></i>
                         <span>Бестселлеры Steam</span>
                     </button>
+                    <button class="discovery-tab flex items-center gap-1.5" data-tab="wishlist" onclick="switchDiscoveryTab('wishlist')">
+                        <i class="fa-solid fa-heart text-rose-500"></i>
+                        <span>Избранное</span>
+                        <span id="wishlistCountBadge" class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 hidden">0</span>
+                    </button>
                 </div>
                 <div class="text-xs text-[#3D4F6E] flex items-center gap-2">
                     <span class="w-1.5 h-1.5 rounded-full bg-deal pulse-dot"></span>
@@ -724,7 +759,11 @@
                                 <i class="fa-solid fa-bell"></i>
                                 <span>Отслеживать цену</span>
                             </button>
-                            <button onclick="copyGameLink()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1C2538] text-[#94A3B8] hover:text-white hover:border-[#263048] border border-[#1C2538] transition-all">
+                            <button id="detailWishlistBtn" onclick="toggleDetailWishlist()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1C2538] text-[#94A3B8] hover:text-white hover:border-[#263048] border border-[#1C2538] transition-all">
+                                <i class="fa-regular fa-heart text-rose-500"></i>
+                                <span id="detailWishlistText">В избранное</span>
+                            </button>
+                            <button id="shareGameBtn" onclick="copyGameLink()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1C2538] text-[#94A3B8] hover:text-white hover:border-[#263048] border border-[#1C2538] transition-all">
                                 <i class="fa-solid fa-share-nodes"></i>
                                 <span>Поделиться</span>
                             </button>
@@ -1979,6 +2018,7 @@
 // ─── State ───────────────────────────────────────────────────────────────
 let allOffers           = [];
 let currentGameId       = null;
+let currentSteamAppId   = null;
 let steamRawRub         = null;
 let regionFilter        = 'All';
 let platformFilter      = 'All';
@@ -1989,10 +2029,36 @@ let pollingTimer        = null;
 let currentDiscoveryTab = 'new';
 let discoveryCache      = {};
 
+// ─── TMA (Telegram Mini App) ───────────────────────────────────────────
+function initTelegramWebApp() {
+    try {
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            const user = tg.initDataUnsafe?.user;
+            if (user && user.id) {
+                localStorage.setItem('gd_chat_id', user.id);
+            }
+        }
+    } catch (e) {
+        console.log('TMA init bypass');
+    }
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+    initTelegramWebApp();
     initAppConfig();
+    updateWishlistBadges();
     loadDiscoveryGames('new');
+
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+    }
 
     const searchInput = document.getElementById('searchInput');
     const suggestionsBox = document.getElementById('searchSuggestions');
@@ -2118,13 +2184,184 @@ window.addEventListener('popstate', (event) => {
     }
 });
 
+// ─── Wishlist (Избранное) Logic ─────────────────────────────────────────
+function getWishlist() {
+    try {
+        const stored = localStorage.getItem('looto_wishlist');
+        return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveWishlist(list) {
+    try {
+        localStorage.setItem('looto_wishlist', JSON.stringify(list));
+    } catch (e) {}
+    updateWishlistBadges();
+}
+
+function isWishlisted(gameId) {
+    if (!gameId) return false;
+    const list = getWishlist();
+    return list.some(item => Number(item.id) === Number(gameId));
+}
+
+function toggleWishlist(e, game) {
+    if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    if (!game || !game.id) return;
+
+    let list = getWishlist();
+    const existingIndex = list.findIndex(item => Number(item.id) === Number(game.id));
+
+    if (existingIndex >= 0) {
+        list.splice(existingIndex, 1);
+        saveWishlist(list);
+        showToast(`«${game.name}» удалена из избранного`);
+    } else {
+        list.unshift({
+            id: game.id,
+            name: game.name,
+            steam_appid: game.steam_appid,
+            min_price: game.min_price || null,
+            max_price: game.max_price || null,
+            discount_percent: game.discount_percent || null,
+            offer_count: game.offer_count || null,
+            image: game.image || (game.steam_appid ? `https://cdn.akamai.steamstatic.com/steam/apps/${game.steam_appid}/header.jpg` : null)
+        });
+        saveWishlist(list);
+        showToast(`«${game.name}» добавлена в избранное ❤️`);
+    }
+
+    updateWishlistUI(game.id);
+
+    if (currentDiscoveryTab === 'wishlist') {
+        renderWishlistTab();
+    }
+}
+
+function updateWishlistBadges() {
+    const list = getWishlist();
+    const badge = document.getElementById('wishlistCountBadge');
+    if (badge) {
+        if (list.length > 0) {
+            badge.textContent = list.length;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+}
+
+function updateWishlistUI(gameId) {
+    document.querySelectorAll(`.wishlist-btn[data-game-id="${gameId}"]`).forEach(btn => {
+        const inList = isWishlisted(gameId);
+        btn.classList.toggle('text-rose-500', inList);
+        btn.classList.toggle('text-[#64748B]', !inList);
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.className = inList ? 'fa-solid fa-heart text-xs text-rose-500' : 'fa-regular fa-heart text-xs';
+        }
+    });
+
+    if (currentGameId && Number(currentGameId) === Number(gameId)) {
+        updateDetailWishlistButton();
+    }
+}
+
+function updateDetailWishlistButton() {
+    const btn = document.getElementById('detailWishlistBtn');
+    const textEl = document.getElementById('detailWishlistText');
+    if (!btn || !currentGameId) return;
+
+    const inList = isWishlisted(currentGameId);
+    const icon = btn.querySelector('i');
+    if (inList) {
+        btn.className = 'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 transition-all';
+        if (icon) icon.className = 'fa-solid fa-heart text-rose-500';
+        if (textEl) textEl.textContent = 'В избранном';
+    } else {
+        btn.className = 'inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1C2538] text-[#94A3B8] hover:text-white hover:border-[#263048] border border-[#1C2538] transition-all';
+        if (icon) icon.className = 'fa-regular fa-heart text-rose-500';
+        if (textEl) textEl.textContent = 'В избранное';
+    }
+}
+
+function toggleDetailWishlist() {
+    if (!currentGameId) return;
+    const titleEl = document.getElementById('gameTitle');
+    const name = titleEl ? titleEl.textContent : 'Игра';
+    const minEl = document.getElementById('statsMin');
+    const minPrice = minEl ? parseFloat(minEl.textContent.replace(/[^\d.]/g, '')) || null : null;
+
+    toggleWishlist(null, {
+        id: currentGameId,
+        name: name,
+        steam_appid: currentSteamAppId,
+        min_price: minPrice
+    });
+}
+
+function renderWishlistTab() {
+    const grid = document.getElementById('discoveryGrid');
+    if (!grid) return;
+    const items = getWishlist();
+
+    if (items.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full py-16 text-center">
+                <div class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4" style="background:rgba(244,63,94,0.1); border:1px solid rgba(244,63,94,0.25);">
+                    <i class="fa-regular fa-heart text-2xl text-rose-500"></i>
+                </div>
+                <h3 class="text-base font-bold text-white mb-1">Ваш список избранного пуст</h3>
+                <p class="text-xs text-[#64748B] max-w-sm mx-auto mb-5">Нажимайте на сердечко на карточках любых игр, чтобы быстро следить за ценами и скидками в одном месте.</p>
+                <button onclick="switchDiscoveryTab('deals')" class="px-4 py-2 rounded-xl text-xs font-bold bg-[#00D4FF]/10 text-[#00D4FF] border border-[#00D4FF]/30 hover:bg-[#00D4FF]/20 transition-all">
+                    🔥 Смотреть лучшие скидки
+                </button>
+            </div>
+        `;
+        return;
+    }
+    renderDiscoveryGrid(items, 'wishlist');
+}
+
 // ─── Discovery Hub ────────────────────────────────────────────────────────
 async function switchDiscoveryTab(tab) {
     currentDiscoveryTab = tab;
     document.querySelectorAll('.discovery-tab').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
     });
+
+    if (tab === 'wishlist') {
+        renderWishlistTab();
+        return;
+    }
+
     await loadDiscoveryGames(tab);
+}
+
+function renderDiscoverySkeletons() {
+    const grid = document.getElementById('discoveryGrid');
+    if (!grid) return;
+    let html = '';
+    for (let i = 0; i < 10; i++) {
+        html += `
+            <div class="game-card pointer-events-none" style="min-height:190px;">
+                <div class="game-card-thumb bg-[#101520] relative overflow-hidden shimmer-effect" style="height:115px;"></div>
+                <div class="p-3 space-y-2.5">
+                    <div class="h-3.5 bg-[#1C2538] rounded-md w-3/4 shimmer-effect"></div>
+                    <div class="flex items-center justify-between pt-1">
+                        <div class="h-4 bg-[#1C2538] rounded w-1/2 shimmer-effect"></div>
+                        <div class="w-3.5 h-3.5 bg-[#1C2538] rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    grid.innerHTML = html;
 }
 
 async function loadDiscoveryGames(mode = 'new') {
@@ -2137,8 +2374,7 @@ async function loadDiscoveryGames(mode = 'new') {
         return;
     }
 
-    grid.classList.add('opacity-40');
-    if (loading) loading.classList.remove('hidden');
+    renderDiscoverySkeletons();
 
     try {
         const res = await fetch(`/api/catalog/popular?mode=${mode}`);
@@ -2150,7 +2386,6 @@ async function loadDiscoveryGames(mode = 'new') {
     } catch (e) {
         console.error('Discovery load error:', e);
     } finally {
-        grid.classList.remove('opacity-40');
         if (loading) loading.classList.add('hidden');
     }
 }
@@ -2201,6 +2436,8 @@ function renderDiscoveryGrid(items, mode) {
             badgeTag = `<span class="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 backdrop-blur-md flex items-center gap-1">✨ Новинка</span>`;
         } else if (mode === 'steam') {
             badgeTag = `<span class="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 backdrop-blur-md">⭐ Steam</span>`;
+        } else if (mode === 'wishlist') {
+            badgeTag = `<span class="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 backdrop-blur-md flex items-center gap-1">❤️ В избранном</span>`;
         }
 
         let priceLabel = '';
@@ -2220,12 +2457,23 @@ function renderDiscoveryGrid(items, mode) {
             priceLabel = (game.offer_count ? `<span class="text-xs font-medium text-[#64748B]">${game.offer_count} предл.</span>` : `<span class="text-xs font-medium text-accent">Подробнее</span>`);
         }
 
+        const wishlisted = isWishlisted(game.id);
+        const heartBtn = `
+            <button onclick="toggleWishlist(event, ${JSON.stringify(game).replace(/"/g, '&quot;')})"
+                    data-game-id="${game.id}"
+                    class="wishlist-btn absolute top-2 right-2 z-20 w-7 h-7 rounded-lg flex items-center justify-center transition-all bg-[#07090F]/80 backdrop-blur-md border border-[#1C2538] hover:border-rose-500/60 hover:bg-[#07090F] ${wishlisted ? 'text-rose-500' : 'text-[#64748B]'}"
+                    title="${wishlisted ? 'Удалить из избранного' : 'Добавить в избранное'}">
+                <i class="fa-${wishlisted ? 'solid' : 'regular'} fa-heart text-xs ${wishlisted ? 'text-rose-500' : ''}"></i>
+            </button>
+        `;
+
         const card = document.createElement('div');
         card.className = 'game-card group relative';
         card.onclick = () => selectGame(game.name, game.id);
 
         card.innerHTML = `
             ${badgeTag}
+            ${heartBtn}
             <div class="game-card-thumb" style="${thumbStyle}">
                 ${thumbHtml}
             </div>
@@ -2309,6 +2557,8 @@ async function loadPrices(gameId, pushHistory = true) {
 // ─── Render sidebar ───────────────────────────────────────────────────────
 function renderSidebar(data) {
     document.getElementById('gameTitle').textContent = data.game_name;
+    currentSteamAppId = data.steam_appid || null;
+    updateDetailWishlistButton();
 
     // update badge
     const updBadge = document.getElementById('updatingBadge');
@@ -2812,16 +3062,35 @@ function showToast(msg) {
     }, 2800);
 }
 
-function copyGameLink() {
+async function copyGameLink() {
     const url = window.location.href;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(() => {
-            showToast('Ссылка на игру скопирована!');
-        }).catch(() => {
+    const title = document.getElementById('heroGameTitle')?.textContent || document.getElementById('gameTitle')?.textContent || 'LootoZavr';
+    let shared = false;
+    if (navigator.share) {
+        try {
+            const sharePromise = navigator.share({
+                title: `${title} — Лучшая цена на LootoZavr`,
+                text: `Сравни цены на ${title} в проверенных магазинах:`,
+                url: url
+            });
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 500));
+            await Promise.race([sharePromise, timeoutPromise]);
+            shared = true;
+        } catch (e) {
+            // WebShare unavailable or timeout in headless -> fallback to clipboard
+        }
+    }
+    if (!shared) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(url);
+                showToast('Ссылка на игру скопирована в буфер обмена! 📋');
+            } catch (err) {
+                showToast('Ссылка: ' + url);
+            }
+        } else {
             showToast('Ссылка: ' + url);
-        });
-    } else {
-        showToast('Ссылка: ' + url);
+        }
     }
 }
 
@@ -3333,9 +3602,20 @@ function openTrackModal() {
     targetPriceInput.oninput = updateTelegramDeepLink;
     updateTelegramDeepLink();
 
-    const savedChatId = localStorage.getItem('gd_chat_id');
-    if (savedChatId) {
-        document.getElementById('trackChatId').value = savedChatId;
+    // Check if Telegram WebApp user is available
+    const badge = document.getElementById('tgAutoDetectBadge');
+    const badgeText = document.getElementById('tgAutoDetectText');
+    const tmaUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    if (tmaUser && tmaUser.id) {
+        document.getElementById('trackChatId').value = tmaUser.id;
+        if (badge) badge.classList.remove('hidden');
+        if (badgeText) badgeText.textContent = `Ваш Telegram (@${tmaUser.username || tmaUser.first_name}) подключен!`;
+    } else {
+        if (badge) badge.classList.add('hidden');
+        const savedChatId = localStorage.getItem('gd_chat_id');
+        if (savedChatId) {
+            document.getElementById('trackChatId').value = savedChatId;
+        }
     }
 
     const msg = document.getElementById('trackResultMsg');
@@ -3343,6 +3623,7 @@ function openTrackModal() {
     msg.textContent = '';
 
     document.getElementById('trackModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeTrackModal() {
@@ -5116,6 +5397,12 @@ function renderDonateOffers() {
         </p>
 
         <div class="space-y-3">
+            <!-- Telegram Mini App Auto-Detected User Badge -->
+            <div id="tgAutoDetectBadge" class="hidden p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs flex items-center gap-2">
+                <i class="fa-brands fa-telegram text-base flex-shrink-0"></i>
+                <span id="tgAutoDetectText">Telegram аккаунт подключен</span>
+            </div>
+
             <!-- 1-Click Telegram Deep Link -->
             <a id="trackTelegram1Click" href="https://t.me/LootoZavr_bot" target="_blank" rel="noopener noreferrer"
                class="w-full py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2.5 transition-all text-white shadow-lg shadow-sky-500/10 hover:brightness-110"

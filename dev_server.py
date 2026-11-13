@@ -436,6 +436,22 @@ class DevServerHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         # ── FRONTEND PAGES: Always serve templates/index.html ────────────────
+        if path == "/manifest.json" and os.path.exists("static/manifest.json"):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/manifest+json")
+            self.end_headers()
+            with open("static/manifest.json", "rb") as f:
+                self.wfile.write(f.read())
+            return
+
+        if path == "/sw.js" and os.path.exists("static/sw.js"):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/javascript")
+            self.end_headers()
+            with open("static/sw.js", "rb") as f:
+                self.wfile.write(f.read())
+            return
+
         if path in ("/", "/topup", "/donate") or path.startswith("/donate/") or path.startswith("/game/"):
             if os.path.exists(TEMPLATE_PATH):
                 with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
